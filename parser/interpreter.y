@@ -151,7 +151,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 /* Type of the non-terminal symbols */
 // New in example 17: cond
-%type <expNode> exp cond 
+%type <expNode> exp cond str
 
 /* New in example 14 */
 %type <parameters> listOfExp  restOfListOfExp
@@ -163,70 +163,74 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 %type <prog> program
 
-/* Defined tokens */
+/* Tokens for control flow constructs */
 
-/* Minimum precedence */
+%token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT END_SWITCH
+%token THEN END_IF DO END_WHILE
+%token END_FOR FROM STEP TO
 
-/*******************************************/
-/* NEW in example 5 */
-%token SEMICOLON
-/*******************************************/
+/* Tokens for input/output operations */
 
-/* NEW in example 17: IF, ELSE, WHILE */
-%token PRINT READ IF ELSE WHILE 
+%token PRINT READ READ_STRING
 
-/* NEW in example 17 */
-%token LETFCURLYBRACKET RIGHTCURLYBRACKET
+/* Tokens for block delimiters and separators */
 
-/* NEW in example 7 */
-%right ASSIGNMENT
+%token LETFCURLYBRACKET RIGHTCURLYBRACKET SEMICOLON COMMA
 
-/* NEW in example 14 */
-%token COMMA
+/* Tokens for screen control / positioning */
 
-/*******************************************/
-/* MODIFIED in example 4 */
-%token <number> NUMBER
-/*******************************************/
+%token CLEAR_SCREEN PLACE
 
-/*******************************************/
-/* NEW in example 15 */
-%token <logic> BOOL
-/*******************************************/
+/* Tokens for mathematical functions */
 
-/* MODIFIED in examples 11, 13 */
-%token <string> VARIABLE UNDEFINED CONSTANT BUILTIN
+%token SIN COS SQRT LOG LOG10 EXP INTEGER ABS
 
-/* Left associativity */
+/* Tokens for mathematical constants */
 
-/*******************************************************/
-/* NEW in example 15 */
-%left OR
+%token PI E GAMMA PHI DEG
 
-%left AND
+/* Other operator tokens */
 
-%nonassoc GREATER_OR_EQUAL LESS_OR_EQUAL GREATER_THAN LESS_THAN  EQUAL NOT_EQUAL
+%token MOD
 
-%left NOT
-/*******************************************************/
+/* Boolean constants */
 
-/* MODIFIED in example 3 */
-%left PLUS MINUS 
+%token TRUE FALSE
 
-/* MODIFIED in example 5 */
+/* Tokens with semantic values */
+
+%token <number> NUMBER         /* Numeric literals */
+%token <string> STRING         /* Strings literals */
+%token <logic> BOOL            /* Boolean literals */
+%token <string> VARIABLE       /* Variable identifiers */
+%token <string> UNDEFINED      /* Undefined identifiers */
+%token <string> CONSTANT       /* Constant values */
+%token <string> BUILTIN        /* Builtin function names */
+
+/* Operator precedences and associativity */
+
+%right ASSIGNMENT              /* Assignment operator (=) */
+%left OR                       /* Logical OR */
+%left AND                      /* Logical AND */
+
+%nonassoc GREATER_OR_EQUAL LESS_OR_EQUAL GREATER_THAN LESS_THAN EQUAL NOT_EQUAL
+                               /* Relational operators */
+
+%left NOT                      /* Logical NOT operator */
+
+%left PLUS MINUS               /* Addition and subtraction */
+
 %left MULTIPLICATION DIVISION MODULO
+                               /* Multiplication, division and modulo */
 
-%left LPAREN RPAREN
+%left LPAREN RPAREN            /* Parentheses */
 
-%nonassoc  UNARY
+%nonassoc UNARY                /* Unary operators */
 
-// Maximum precedence 
-/* MODIFIED in example 5 */
-%right POWER
-
+%right POWER                   /* Exponentiation */
 
 %%
- //! \name Grammar rules
+//! \name Grammar rules
 
 /* MODIFIED  Grammar in example 16 */
 
@@ -390,6 +394,9 @@ asgn:   VARIABLE ASSIGNMENT exp
 			// Create a new assignment node
 			$$ = new lp::AssignmentStmt($1, (lp::AssignmentStmt *) $3);
 		}
+	|  VARIABLE ASSIGNMENT str {
+        $$ = new lp::AssignmentStmt($1, $3);
+    	}
 
 	   /* NEW in example 11 */ 
 	| CONSTANT ASSIGNMENT exp 
@@ -634,8 +641,9 @@ restOfListOfExp:
 			}
 ;
 
-
-
+str:
+  STRING { $$ = new lp::StringNode(std::string($1)); }
+;
 %%
 
 

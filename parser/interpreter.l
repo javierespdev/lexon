@@ -3,106 +3,179 @@
   \brief Lexical or scanner file
 */
 %{
+
+/* Standard libraries */
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
 
-/*********************/
-/* NEW in example 4 */
-/* atof */
-#include <stdlib.h>
-/*********************/
-
-/* Macros for the screen */
+/* Project headers */
 #include "../includes/macros.hpp"
-
-/*********************/
-/* 
-  NEW in example 16 
-  AST class
-  IMPORTANT: must be written before interpreter.tab.h
-*/
 #include "../ast/ast.hpp"
-/*********************/
-
-/*  interpreter.tab.h contains the numeric values of the tokens produced by the parser */
 #include "interpreter.tab.h"
-
-/********************/
-/* NEW in example 3 */
 #include "../error/error.hpp"
-/********************/
-
-
-/*********************************************/
-/* NEW in example 7 */
-/* Table of symbols */
 #include "../table/table.hpp"
-
 #include "../table/numericVariable.hpp"
 
-extern lp::Table table; //!< External Table of Symbols
-/*********************************************/
-
-extern int lineNumber; //!< External line counter
-
-/* uso de strdup */
-#include <string.h>
-
+/* External variables */
+extern lp::Table table;        /* Symbol table */
+extern int lineNumber;         /* Current line number for error reporting */
 
 %}
 
+/*! \name Regular definitions  */
+LETTER                      [a-zA-Z]
 
-/*! \name REGULAR DEFINITIONS  */
+DIGIT                      	[0-9]
 
-DIGIT  [0-9] 
+NUMBER1 					{DIGIT}+\.?
 
-LETTER [a-zA-Z]
+NUMBER2 					{DIGIT}*\.{DIGIT}+
 
-NUMBER1 {DIGIT}+\.?
+NUMBER3                     {DIGIT}+(\.{DIGIT}+)?(E[+\-]?{DIGIT}+)?
 
-NUMBER2 {DIGIT}*\.{DIGIT}+
+IDENTIFIER               	{LETTER}({LETTER}|{DIGIT}|_)*
 
-IDENTIFIER  {LETTER}({LETTER}|{DIGIT})*
+IDENTIFIER_WRONG1          	{LETTER}({LETTER}|{DIGIT}|_)*__({LETTER}|{DIGIT}|_)*
 
-/* NEW in example 3 */
-/* STATE  */
+IDENTIFIER_WRONG2          	{LETTER}({LETTER}|{DIGIT}|_)*_
+
+IDENTIFIER_WRONG3          	(_|{DIGIT})({LETTER}|{DIGIT}|_)*
+
+STRING                      \'([^'\\]|\\.)*\'
+
+COMMENT_IN_ONE_LINE        	#[^\n]*
+
+/* States */
 %x ERROR
+%x COMMENT_STATE
 
-/*! \name REGULAR EXPRESSIONS  */
+/*! \name Regular expressions  */
 %%
 
-[ \t] 	{ ; }    /* skip white space and tabular */
+	/****** Strings ******/
+{STRING}                            { 
+										yylval.string = strdup(yytext);
+										return STRING;
+									}
 
-\n      { 
-			/* Line counter */
-           	lineNumber++; 
-	
-			/* MODIFIED in example 3 */
-			/* COMMENTED in example 5 */
-        	/* return NEWLINE; */
-        }
+    /****** Comments ******/
+{COMMENT_IN_ONE_LINE}               {}
 
-";"		{
-			/* NEW in example 5 */
-			return SEMICOLON;
-		}
+"(*"                                { BEGIN COMMENT_STATE; }
+
+<COMMENT_STATE>"(*"/(.|\n)          {}
+
+<COMMENT_STATE>"*)"                 { BEGIN 0; }
+
+<COMMENT_STATE>.			        {}
+
+	/****** Control flow keywords ******/
+"read"          { return READ; }
+"read_string"   { return READ_STRING; }
+"print"         { return PRINT; }
+
+"if"            { return IF; }
+"then"          { return THEN; }
+"else"          { return ELSE; }
+"end_if"        { return END_IF; }
+
+"while"         { return WHILE; }
+"do"            { return DO; }
+"end_while"     { return END_WHILE; }
+
+"repeat"        { return REPEAT; }
+"until"         { return UNTIL; }
+
+"for"           { return FOR; }
+"end_for"       { return END_FOR; }
+"from"          { return FROM; }
+"step"          { return STEP; }
+"to"            { return TO; }
+
+"switch"        { return SWITCH; }
+"case"          { return CASE; }
+"default"       { return DEFAULT; }
+"end_switch"    { return END_SWITCH; }
+
+	/****** Screen functions ******/
+"clear_screen"  { return CLEAR_SCREEN; }
+"place"         { return PLACE; }
+
+	/****** Math functions ******/
+"sin"           { return SIN; }
+"cos"           { return COS; }
+"sqrt"          { return SQRT; }
+"log"           { return LOG; }
+"log10"         { return LOG10; }
+"exp"           { return EXP; }
+"integer"       { return INTEGER; }
+"abs"           { return ABS; }
+
+	/****** Math constants ******/
+"pi"            { return PI; }
+"e"             { return E; }
+"gamma"         { return GAMMA; }
+"phi"           { return PHI; }
+"deg"           { return DEG; }
+
+	/****** Boolean values ******/
+"true"          { return TRUE; }
+"false"         { return FALSE; }
 
 
-","		{
-			/* NEW in example 14 */
-			return COMMA;
-		}
+[ \t] 			{}   /* skip white space and tabular */
 
-{NUMBER1}|{NUMBER2}  {
-					  /* MODIFIED in example 4 */
+\n      		{ 
+					/* Line counter */
+					lineNumber++; 
+				}
+
+";"		        {
+					return SEMICOLON;
+				}
+
+
+","		        {
+					return COMMA;
+				}
+
+    /****** Number ******/
+{NUMBER1}|{NUMBER2}|{NUMBER3}  {
 					  /* Conversion of type and sending of the numerical value to the parser */
 					   yylval.number = atof(yytext); 
-
                        return NUMBER; 
-                      }
+                    }
 
+    /****** Identifier ******/
+{IDENTIFIER_WRONG1}	{ 
+						/* 
+							An identifier with two underscores is not allowed
+							Change to error state
+						*/
+						BEGIN(ERROR); 
+						yymore(); 
+					}
 
-{IDENTIFIER}   		 {
-						 /* NEW in example 7 */
+{IDENTIFIER_WRONG2}	{ 
+						/* 
+							An identifier with an underscore at the end is not allowed
+							Change to error state
+						*/
+						BEGIN(ERROR); 
+						yymore(); 
+					}
+					
+{IDENTIFIER_WRONG3}	{ 
+						/* 
+							An identifier with an underscore at the beginning or a digit at the beginning is not allowed
+							Change to error state
+						*/
+						BEGIN(ERROR); 
+						yymore(); 
+					}
+
+{IDENTIFIER}   		{
 						 std::string identifier(yytext);
 
 						/* 
@@ -126,7 +199,6 @@ IDENTIFIER  {LETTER}({LETTER}|{DIGIT})*
 								return VARIABLE;
 							}
 
-						/* MODIFIED in example 11 */
 						/* 
 							If the identifier is in the table of symbols then its token is returned 
 								The identifier can be a variable or a numeric constant
@@ -135,57 +207,51 @@ IDENTIFIER  {LETTER}({LETTER}|{DIGIT})*
 							{
 								lp::Symbol	*s = table.getSymbol(identifier);
 
-/*
-								std::cout << "lex: "<< s->getName() 
-										  << "token " << s->getToken()
-  										  << std::endl; 
-*/
-
 								/*  If the identifier is in the table then its token is returned  */
 								return s->getToken();
 							}
-                     }
+                    }
 
-"-"		{ return MINUS;  } 			/* NEW in example 3 */
-"+"		{ return PLUS;   } 			/* NEW in example 3 */
+"-"		{ return MINUS;  }
+"+"		{ return PLUS;   }
 
-"*"	    { return MULTIPLICATION; } 	/* NEW in example 3 */
-"/"     { return DIVISION; } 		/* NEW in example 3 */
+"*"	    { return MULTIPLICATION; }
+"/"     { return DIVISION; }
+ /*"//"  	{ return INTEGER_DIVISION; }*/
 
-"("     { return LPAREN; } 			/* NEW in example 3 */
-")"	    { return RPAREN; } 			/* NEW in example 3 */
+"("     { return LPAREN; }
+")"	    { return RPAREN; }
+
+ /*"||" { return CONCATENATION; }*/
+
+"mod"     { return MODULO; }
+
+"^"	    { return POWER; }
+
+":=" 	{ return ASSIGNMENT; }
 
 
+"="	{ return EQUAL; }
 
-"%"     { return MODULO; }			/* NEW in example 5 */
+"<>"	{ return NOT_EQUAL; }
 
-"^"	    { return POWER; }			/* NEW in example 5 */
+">="	{ return GREATER_OR_EQUAL; }
 
-"=" 	{ return ASSIGNMENT; }		/* NEW in example 7 */
+"<="	{ return LESS_OR_EQUAL; }
 
+">"		{ return GREATER_THAN; }
 
-"=="	{ return EQUAL; }			/* NEW in example 15 */
+"<"		{ return LESS_THAN; }
 
-"!="	{ return NOT_EQUAL; }		/* NEW in example 15 */
+"not"		{ return NOT; }
 
-">="	{ return GREATER_OR_EQUAL; }/* NEW in example 15 */
+"or"	{ return OR; }
 
-"<="	{ return LESS_OR_EQUAL; }	/* NEW in example 15 */
+"and"	{ return AND; }
 
-">"		{ return GREATER_THAN; }	/* NEW in example 15 */
+"{"		{ return LETFCURLYBRACKET; }
 
-"<"		{ return LESS_THAN; }		/* NEW in example 15 */
-
-"!"		{ return NOT; }				/* NEW in example 15 */
-
-"||"	{ return OR; }				/* NEW in example 15 */
-
-"&&"	{ return AND; }				/* NEW in example 15 */
-
-"{"		{ return LETFCURLYBRACKET; } 	/* NEW in example 17 */
-
-"}"		{ return RIGHTCURLYBRACKET; }	/* NEW in example 17 */
-
+"}"		{ return RIGHTCURLYBRACKET; }
 
 <<EOF>> { /* The interpreter finishes when finds the end of file character */
 		/*  PLACE(24,10);
@@ -196,33 +262,17 @@ IDENTIFIER  {LETTER}({LETTER}|{DIGIT})*
 		  PLACE(25,1);
 		*/
 	  	  return 0;
-	}
-
+		}
 
 .								{ 	
 									/* Any other character */
-									/* MODIFIIED in example 3 */
-									/* Change to error state */
 									BEGIN(ERROR); 
-
-									/* 
-										The current value of yytext 
-										will be concatenated with the next character
-									*/
 									yymore();  
 								}
 
-<ERROR>[^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&]	{ /* MODIFIED in examples 5, 7, 15 */
-								  /* NEW in example 3 */
-								  /* 
-									The current value of yytext 
-									will be concatenated with the next character
-								  */
-									yymore(); 
-								}
+<ERROR>[^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&]	{ yymore(); }
 
 <ERROR>(.|\n)                { 
-								/* NEW in example 3 */
 								/* Rewind one position */
 								yyless(yyleng-1); 
 
@@ -231,6 +281,6 @@ IDENTIFIER  {LETTER}({LETTER}|{DIGIT})*
 
 								/* Restore the initial state */
    								BEGIN(INITIAL);
-							}
+								 }
 %%
 
