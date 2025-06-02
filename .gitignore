@@ -25,3 +25,8 @@ parser/interpreter.gv
 # Carpeta de documentación generada
 # ----------------------------------------------------------------
 html/
+
+# ----------------------------------------------------------------
+# Archivos de configuración de Visual Studio Code
+# ----------------------------------------------------------------
+.vscode/
