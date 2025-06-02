@@ -26,6 +26,7 @@
 
 // 
 #include "../table/numericVariable.hpp"
+#include "../table/stringVariable.hpp"
 #include "../table/logicalVariable.hpp"
 
 #include "../table/numericConstant.hpp"
@@ -49,7 +50,6 @@ extern lp::AST *root; //!< Reference to the object at the base of the AST
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,6 +201,24 @@ double lp::NumberNode::evaluateNumber()
     return this->_number; 
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+ 
+
+int lp::StringNode::getType()
+{
+	return STRING;
+}
+
+void lp::StringNode::printAST()
+{
+    std::cout << "StringNode: " << this->_string << std::endl;
+}
+
+std::string lp::StringNode::evaluateString()
+{
+    return this->_string;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1078,7 +1096,26 @@ void lp::AssignmentStmt::evaluate()
 				}
 			}
 			break;
+			case STRING:
+			{
+				std::string value = this->_exp->evaluateString();
 
+				if (firstVar->getType() == STRING)
+				{
+					lp::StringVariable *v = (lp::StringVariable *) table.getSymbol(this->_id);
+					v->setValue(value);
+				}
+				else
+				{
+					// Borra variable antigua
+					table.eraseSymbol(this->_id);
+
+					// Inserta nueva variable string
+					lp::StringVariable *v = new lp::StringVariable(this->_id, VARIABLE, STRING, value);
+					table.installSymbol(v);
+				}
+			}
+			break;
 			case BOOL:
 			{
 				bool value;

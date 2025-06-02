@@ -69,6 +69,17 @@ namespace lp
 		return false;
 	}
 
+	/*!	
+		\brief   Evaluate the expression as string
+		\warning Virtual function: could be redefined in the heir classes
+		\return  string
+		\sa		 getType, printAST, evaluateString
+	*/
+    virtual std::string evaluateString()
+	{
+		return "";
+	}
+
 };
 
 
@@ -182,7 +193,8 @@ class ConstantNode : public ExpNode
 	  bool evaluateBool();
 };
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -234,7 +246,48 @@ class NumberNode : public ExpNode
 	double evaluateNumber();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
+
+class StringNode : public ExpNode
+{
+private:
+    std::string _string; //!< \brief Stored string value of this node
+
+public:
+    /*!
+        \brief Constructor of StringNode
+        \param value: The string to store in this node
+        \post  A StringNode object is created holding the given string
+        \note  Inline implementation
+    */
+    StringNode(std::string value)
+    {
+        this->_string = value;
+    }
+
+    /*!
+        \brief   Returns the type of this expression node (STRING)
+        \return  int representing the node type
+        \sa      printAST()
+    */
+    int getType();
+
+    /*!
+        \brief   Prints the string value of this node
+        \return  void
+        \sa      evaluateString()
+    */
+    void printAST();
+
+    /*!
+        \brief   Evaluates and returns the stored string
+        \return  std::string containing the node's string value
+        \sa      getType()
+    */
+    std::string evaluateString();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
