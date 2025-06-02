@@ -396,7 +396,7 @@ asgn:   VARIABLE ASSIGNMENT exp
         }
     |  VARIABLE ASSIGNMENT str 
         {
-        $$ = new lp::AssignmentStmt($1, $3);
+            $$ = new lp::AssignmentStmt($1, $3);
         }
 
        /* NEW in example 11 */ 
@@ -436,6 +436,11 @@ exp:    NUMBER
         { 
             // Create a new number node
             $$ = new lp::NumberNode($1);
+        }
+    |   STRING
+        { 
+            // Create a new string node
+             $$ = new lp::StringNode($1);
         }
 
     |     exp PLUS exp 

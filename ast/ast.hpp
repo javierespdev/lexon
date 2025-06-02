@@ -137,6 +137,12 @@ class VariableNode : public ExpNode
 	*/
 	  bool evaluateBool();
 
+	/*!	
+		\brief   Evaluate the Variable as STRING
+		\return  string
+		\sa		   getType, printAST, evaluateNumber
+	*/
+	  std::string evaluateString();
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

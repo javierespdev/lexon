@@ -117,6 +117,29 @@ bool lp::VariableNode::evaluateBool()
 }
 
 
+std::string lp::VariableNode::evaluateString() 
+{ 
+	std::string result;
+
+	if (this->getType() == STRING)
+	{
+		// Get the identifier in the table of symbols as StringVariable
+		lp::StringVariable *var = (lp::StringVariable *) table.getSymbol(this->_id);
+
+		// Copy the value of the StringVariable
+		result = var->getValue();
+	}
+	else
+	{
+		warning("Runtime error in evaluateString(): the variable is not string",
+				   this->_id);
+	}
+
+	// Return the value of the StringVariable
+	return result;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1107,10 +1130,8 @@ void lp::AssignmentStmt::evaluate()
 				}
 				else
 				{
-					// Borra variable antigua
 					table.eraseSymbol(this->_id);
 
-					// Inserta nueva variable string
 					lp::StringVariable *v = new lp::StringVariable(this->_id, VARIABLE, STRING, value);
 					table.installSymbol(v);
 				}
@@ -1264,9 +1285,27 @@ void lp::PrintStmt::evaluate()
 				std::cout << "true" << std::endl;
 			else
 				std::cout << "false" << std::endl;
-		
 			break;
-
+        case STRING:
+			std::cout << this->_exp->evaluateString() << std::endl;
+			break;
+        case VARIABLE:
+            switch (this->_exp->getType())
+            {
+                case NUMBER:
+                    std::cout << this->_exp->evaluateNumber() << std::endl;
+                    break;
+                case BOOL:
+                    std::cout << (this->_exp->evaluateBool() ? "true" : "false") << std::endl;
+                    break;
+                case STRING:
+                    std::cout << this->_exp->evaluateString() << std::endl;
+                    break;
+                default:
+                    warning("Runtime error: unknown variable type in print", "");
+            }
+            break;
+        
 		default:
 			warning("Runtime error: incompatible type for ", "print");
 	}
