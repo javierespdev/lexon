@@ -412,6 +412,12 @@ read:   READ LPAREN VARIABLE RPAREN
              $$ = new lp::ReadStmt($3);
         }
 
+      | READ_STRING LPAREN VARIABLE RPAREN  
+        {
+            // Create a new read node
+             $$ = new lp::ReadStringStmt($3);
+        }
+
         /* NEW rule in example 11 */
       | READ LPAREN CONSTANT RPAREN  
         {   

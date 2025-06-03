@@ -1463,6 +1463,43 @@ void lp::ReadStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+void lp::ReadStringStmt::printAST() 
+{
+  std::cout << "ReadStringStmt: read"  << std::endl;
+  std::cout << "\t";
+  std::cout << this->_id;
+  std::cout << std::endl;
+}
+
+
+void lp::ReadStringStmt::evaluate() 
+{   
+    std::string value;
+    std::cout << BIYELLOW; 
+    std::cout << "Insert a string value --> " ;
+    std::cout << RESET; 
+
+    std::cin >> value;
+
+    lp::Variable *var = (lp::Variable *) table.getSymbol(this->_id);
+
+    if (var && var->getType() == STRING)
+    {
+        lp::StringVariable *strVar = (lp::StringVariable *) var;
+        strVar->setValue(value);
+    }
+    else
+    {
+        table.eraseSymbol(this->_id);
+
+        lp::StringVariable *strVar = new lp::StringVariable(this->_id, VARIABLE, STRING, value);
+        table.installSymbol(strVar);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 void lp::EmptyStmt::printAST() 
 {
   std::cout << "EmptyStmt "  << std::endl;
