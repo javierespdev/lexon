@@ -548,6 +548,36 @@ class NumericOperatorNode : public OperatorNode
 };
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!
+  \class   StringOperatorNode
+  \brief   Definition of attributes and methods of StringOperatorNode class
+  \note    StringOperatorNode Class publicly inherits from OperatorNode class
+  \warning Abstract class, because it does not redefine the printAST method of ExpNode
+*/
+class StringOperatorNode : public OperatorNode 
+{
+	public:
+
+	/*!
+		\brief Constructor of StringOperatorNode uses OperatorNode's constructor as members initializer
+		\param L: pointer to ExpNode
+		\param R: pointer to ExpNode
+		\post  A new StringOperatorNode is created with the parameters
+	*/
+	StringOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L, R) 
+	{
+		// Empty
+	}
+
+	/*!
+		\brief   Get the type of the children expressions
+		\return  int
+	*/
+	int getType();
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -767,6 +797,81 @@ class DivisionNode : public NumericOperatorNode
 	\sa		   printAST
 */
   double evaluateNumber();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   IntegerDivisionNode
+  \brief   Definition of atributes and methods of IntegerDivisionNode class
+  \note    IntegerDivisionNode Class publicly inherits from NumericOperatorNode class 
+		   and adds its own printAST and evaluate functions
+*/
+class IntegerDivisionNode : public NumericOperatorNode 
+{
+  public:
+/*!		
+	\brief Constructor of IntegerDivisionNode uses NumericOperatorNode's constructor as members initializer
+	\param L: pointer to ExpNode
+	\param R: pointer to ExpNode
+	\post  A new IntegerDivisionNode is created with the parameter
+*/
+  IntegerDivisionNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  {
+		// Empty
+  }
+/*!
+	\brief   printAST the IntegerDivisionNode
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the IntegerDivisionNode
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   ConcatenationNode
+  \brief   Definition of atributes and methods of ConcatenationNode class
+  \note    ConcatenationNode Class publicly inherits from ConcatenationNode class 
+		   and adds its own printAST and evaluate functions
+*/
+class ConcatenationNode : public StringOperatorNode 
+{
+  public:
+/*!		
+	\brief Constructor of ConcatenationNode uses ConcatenationNode's constructor as members initializer
+	\param L: pointer to ExpNode
+	\param R: pointer to ExpNode
+	\post  A new IntegerDivisionNode is created with the parameter
+*/
+  ConcatenationNode(ExpNode *L, ExpNode *R): StringOperatorNode(L,R) 
+  {
+		// Empty
+  }
+/*!
+	\brief   printAST the ConcatenationNode
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the ConcatenationNode
+	\return  double
+	\sa		   printAST
+*/
+  std::string evaluateString();
 };
 
 

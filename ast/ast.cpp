@@ -296,6 +296,22 @@ int lp::NumericOperatorNode::getType()
 	return	result;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+int lp::StringOperatorNode::getType()
+{
+	int result = 0;
+		
+	if ( (this->_left->getType() == STRING) and (this->_right->getType() == STRING))
+		result = STRING;
+	else
+		warning("Runtime error: incompatible types for", "String Operator");
+
+	return	result;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -527,6 +543,90 @@ double lp::DivisionNode::evaluateNumber()
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void lp::IntegerDivisionNode::printAST()
+{
+  std::cout << "IntegerDivisionNode: /" << std::endl;
+  std::cout << "\t"; 
+	this->_left->printAST();
+	std::cout << "\t"; 
+	this->_right->printAST();
+}
+
+double lp::IntegerDivisionNode::evaluateNumber() 
+{
+	double result = 0;
+
+	// Ckeck the types of the expressions
+	if (this->getType() == NUMBER)
+	{
+		double leftNumber, rightNumber;
+
+		leftNumber = this->_left->evaluateNumber();
+		rightNumber = this->_right->evaluateNumber();
+	
+		// The divisor is not zero
+    	if(std::abs(rightNumber) > ERROR_BOUND)
+		{
+			int leftInt = static_cast<int>(leftNumber);
+			int rightInt = static_cast<int>(rightNumber);
+
+			if (rightInt != 0)
+			{
+				result = static_cast<double>(leftInt / rightInt);
+			}
+			else
+			{
+				warning("Runtime error", "Division by zero (after integer conversion)");
+			}
+		}
+		else
+		{
+			warning("Runtime error", "Division by zero");
+		}
+	}
+	else
+	{
+		warning("Runtime error: the expressions are not numeric for", "Division");
+	}
+
+	return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void lp::ConcatenationNode::printAST()
+{
+  std::cout << "ConcatenationNode: /" << std::endl;
+  std::cout << "\t"; 
+	this->_left->printAST();
+	std::cout << "\t"; 
+	this->_right->printAST();
+}
+
+std::string lp::ConcatenationNode::evaluateString() 
+{
+	std::string result;
+
+	// Verifica que ambos operandos sean de tipo STRING
+	if (this->getType() == STRING)
+	{
+		std::string leftStr = this->_left->evaluateString();
+		std::string rightStr = this->_right->evaluateString();
+
+		result = leftStr + rightStr;
+	}
+	else
+	{
+		warning("Runtime error: the expressions are not strings for", "Concatenation");
+	}
+
+	return result;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
