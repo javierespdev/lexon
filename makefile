@@ -19,8 +19,8 @@ LFLAGS = -lfl
 OBJECTS= $(NAME).o
 OBJECTS-PARSER = parser/*.o
 OBJECTS-ERROR = error/*.o
-OBJECTS-TABLE = table/*.o  # New in example 7
-OBJECTS-AST = ast/*.o  # New in example 16
+OBJECTS-TABLE = table/*.o
+OBJECTS-AST = ast/*.o
 
 
 # Includes
@@ -68,15 +68,12 @@ error-dir:
 	@make -C error/ 
 	@echo
 
-# New in example 7
 table-dir:
 	@echo "Accessing directory table" 
 	@echo
 	@make -C table/ 
 	@echo
 
-
-# New in example 16
 ast-dir:
 	@echo "Accessing directory ast" 
 	@echo

@@ -15,14 +15,13 @@
 
 
 
-// New in example 2
+
 #include <stdio.h>
 #include <string>
 //
 
 /////////////////////////////
 /* 
-  NEW in example 16 
   AST class
   IMPORTANT: must be written before interpreter.tab.h
 */
@@ -33,21 +32,16 @@
 
 int lineNumber = 1; //!< Line counter
 
-/* NEW in example 15 */
 bool interactiveMode; //!< Control the interactive mode of execution of the interpreter
 
-/* NEW in example 17 */
 int control = 0; //!< To control the interactive mode in "if" and "while" sentences 
 
-
-// New in example 2
 extern FILE * yyin; //!< Standard input device for yylex() 
 std::string progname; //!<  Program name
 //
 
 
 //////////////////////////////////////////////
-// NEW in example 6 
 
 // Use for recovery of runtime errors 
 #include <setjmp.h>
@@ -61,7 +55,6 @@ lp::AST *root; //!< Root of the abstract syntax tree AST
 ///////////////////////////////////////////// 
 
 //////////////////////////////////////////////
-// NEW in example 10 
 
 #include "table/init.hpp"
 
@@ -74,7 +67,6 @@ lp::AST *root; //!< Root of the abstract syntax tree AST
 extern jmp_buf begin; //!<  It enables recovery of runtime errors 
 
 //////////////////////////////////////////////
-// NEW in example 7 
 
 #include "table/table.hpp"
 
@@ -143,7 +135,7 @@ else
 
  if (interactiveMode == false)
  {
-  /* NEW in example 15 */
+
        root->printAST();  
        root->evaluate(); 
  }

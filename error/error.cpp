@@ -62,9 +62,6 @@ void fpecatch(int signum)
  execerror("Run time","floating point error");
 }
 
-
-
-// NEW in example 13
 double errcheck(double d, std::string s)
 {
   if (errno==EDOM)

@@ -2,24 +2,18 @@
   \file interpreter.y
   \brief Grammar file
 */
-
-
 %{
+
+/* Standard libraries */
 #include <iostream>
 #include <string>
 
-/*******************************************/
-/* NEW in example 5 */
-/* pow */
+/* Math library */
 #include <math.h>
-/*******************************************/
 
-/*******************************************/
-/* NEW in example 6 */
-/* Use for recovery of runtime errors */
+/* Recovery of runtime errors */
 #include <setjmp.h>
 #include <signal.h>
-/*******************************************/
 
 /* Error recovery functions */
 #include "../error/error.hpp"
@@ -27,55 +21,19 @@
 /* Macros for the screen */
 #include "../includes/macros.hpp"
 
-
-/*******************************************/
-/* 
-  NEW in example 16
-  AST class
-  IMPORTANT: this file must be before init.hpp
-*/
+/* AST class */
 #include "../ast/ast.hpp"
 
-
-/*******************************************/
-/* NEW in example 7 */
 /* Table of symbol */
 #include "../table/table.hpp"
-/*******************************************/
-
-/*******************************************/
 #include "../table/numericVariable.hpp"
-/*******************************************/
-
-/* NEW in example 15 */
 #include "../table/logicalVariable.hpp"
-
-/*******************************************/
-/* NEW in example 11 */
 #include "../table/numericConstant.hpp"
-/*******************************************/
-
-/*******************************************/
-/* NEW in example 15 */
 #include "../table/logicalConstant.hpp"
-/*******************************************/
-
-/*******************************************/
-/* NEW in example 13 */
 #include "../table/builtinParameter1.hpp"
-/*******************************************/
-
-/*******************************************/
-/* NEW in example 14 */
 #include "../table/builtinParameter0.hpp"
 #include "../table/builtinParameter2.hpp"
-/*******************************************/
-
-
-/*******************************************/
-/* NEW in example 10 */
 #include "../table/init.hpp"
-/*******************************************/
 
 /*! 
     \brief  Lexical or scanner function
@@ -85,107 +43,69 @@
 */
 int yylex();
 
-
 extern int lineNumber; //!< External line counter
 
-
-/* NEW in example 15 */
 extern bool interactiveMode; //!< Control the interactive mode of execution of the interpreter
 
-/* New in example 17 */
 extern int control; //!< External: to control the interactive mode in "if" and "while" sentences 
 
-
-
-
-/***********************************************************/
-/* NEW in example 2 */
 extern std::string progname; //!<  Program name
-/***********************************************************/
 
-/*******************************************/
-/* NEW in example 6 */
 /*
-jhmp_buf
-This is an array type capable of storing the information of a calling environment to be restored later.
-This information is filled by calling macro setjmp and can be restored by calling function longjmp.
+    This is an array type capable of storing the information of a calling environment to be restored later.
+    This information is filled by calling macro setjmp and can be restored by calling function longjmp.
 */
 jmp_buf begin; //!<  It enables recovery of runtime errors 
-/*******************************************/
 
-
-/*******************************************/
-/* NEW in example 7 */
 extern lp::Table table; //!< Extern Table of Symbols
 
-/*******************************************/
-/* NEW in example 16 */
 extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 %}
 
 /* In case of a syntactic error, more information is shown */
-/* DEPRECATED */
-/* %error-verbose */
-
-/* ALTERNATIVA a %error-verbose */
 %define parse.error verbose
-
 
 /* Initial grammar symbol */
 %start program
 
-/*******************************************/
 /* Data type YYSTYPE  */
-/* NEW in example 4 */
 %union {
   double number;
-  char * string;                  /* NEW in example 7 */
-  bool logic;                         /* NEW in example 15 */
-  lp::ExpNode *expNode;               /* NEW in example 16 */
-  std::list<lp::ExpNode *>  *parameters;    // New in example 16; NOTE: #include<list> must be in interpreter.l, init.cpp, interpreter.cpp
-  std::list<lp::Statement *> *stmts; /* NEW in example 16 */
-  lp::Statement *st;                 /* NEW in example 16 */
-  lp::AST *prog;                     /* NEW in example 16 */
+  char * string;
+  bool logic;
+  lp::ExpNode *expNode;
+  std::list<lp::ExpNode *>  *parameters;
+  std::list<lp::Statement *> *stmts;
+  lp::Statement *st;
+  lp::AST *prog;
 }
 
 /* Type of the non-terminal symbols */
-// New in example 17: cond
 %type <expNode> exp cond
-/* New in example 14 */
 %type <parameters> listOfExp  restOfListOfExp
-
 %type <stmts> stmtlist
-
-// New in example 17: if, while, block
 %type <st> stmt asgn print read if while block
-
 %type <prog> program
 
 /* Tokens for control flow constructs */
-
 %token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT END_SWITCH
 %token THEN END_IF DO END_WHILE
 %token END_FOR FROM STEP TO
 
 /* Tokens for input/output operations */
-
 %token PRINT READ READ_STRING
 
 /* Tokens for block delimiters and separators */
-
 %token LETFCURLYBRACKET RIGHTCURLYBRACKET SEMICOLON COMMA
 
 /* Tokens for screen control / positioning */
-
 %token CLEAR_SCREEN PLACE
 
 /* Tokens for mathematical functions */
-
 %token SIN COS SQRT LOG LOG10 EXP INTEGER ABS MOD
 
 /* Tokens with semantic values */
-
 %token <number> NUMBER         /* Numeric literals */
 %token <string> STRING         /* Strings literals */
 %token <logic> BOOL            /* Boolean literals */
@@ -195,31 +115,33 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %token <string> BUILTIN        /* Builtin function names */
 
 /* Operator precedences and associativity */
-
 %right ASSIGNMENT              /* Assignment operator (=) */
 %left OR                       /* Logical OR */
 %left AND                      /* Logical AND */
 
+/* Relational operators */
 %nonassoc GREATER_OR_EQUAL LESS_OR_EQUAL GREATER_THAN LESS_THAN EQUAL NOT_EQUAL
-                               /* Relational operators */
 
-%left NOT                      /* Logical NOT operator */
+/* Logical NOT operator */
+%left NOT
 
-%left PLUS MINUS               /* Addition and subtraction */
+ /* Addition and subtraction */
+%left PLUS MINUS
 
+/* Multiplication, division, modulo, integer division, concatenation */
 %left MULTIPLICATION DIVISION MODULO INTEGER_DIVISION CONCATENATION
-                               /* Multiplication, division, modulo, integer division, concatenation */
 
-%left LPAREN RPAREN            /* Parentheses */
+/* Parentheses */
+%left LPAREN RPAREN
 
-%nonassoc UNARY                /* Unary operators */
+/* Unary operators */
+%nonassoc UNARY
 
-%right POWER                   /* Exponentiation */
+/* Exponentiation */
+%right POWER
 
 %%
 //! \name Grammar rules
-
-/* MODIFIED  Grammar in example 16 */
 
 program : stmtlist
           { 
@@ -294,19 +216,19 @@ stmt: SEMICOLON  /* Empty statement: ";" */
         // Default action
         // $$ = $1;
       }
-    /*  NEW in example 17 */
+    
     | if 
       {
         // Default action
         // $$ = $1;
       }
-    /*  NEW in example 17 */
+    
     | while 
       {
         // Default action
         // $$ = $1;
       }
-    /*  NEW in example 17 */
+    
     | block 
       {
         // Default action
@@ -343,7 +265,6 @@ if:
     }
 ;
 
-    /*  NEW in example 17 */
 while:  WHILE controlSymbol cond stmt 
         {
             // Create a new while statement node
@@ -354,13 +275,11 @@ while:  WHILE controlSymbol cond stmt
         }
 ;
 
-    /*  NEW in example 17 */
 cond:   LPAREN exp RPAREN
         { 
             $$ = $2;
         }
 ;
-
 
 asgn:   VARIABLE ASSIGNMENT exp 
         { 
@@ -374,12 +293,11 @@ asgn:   VARIABLE ASSIGNMENT exp
             $$ = new lp::AssignmentStmt($1, (lp::AssignmentStmt *) $3);
         }
 
-       /* NEW in example 11 */ 
     | CONSTANT ASSIGNMENT exp 
         {   
              execerror("Semantic error in assignment: it is not allowed to modify a constant ", $1);
         }
-       /* NEW in example 11 */ 
+
     | CONSTANT ASSIGNMENT asgn 
         {   
              execerror("Semantic error in multiple assignment: it is not allowed to modify a constant ",$1);
@@ -405,7 +323,6 @@ read:   READ LPAREN VARIABLE RPAREN
              $$ = new lp::ReadStmt($3);
         }
 
-        /* NEW rule in example 11 */
       | READ LPAREN CONSTANT RPAREN  
         {   
             execerror("Semantic error in \"read statement\": it is not allowed to modify a constant ",$3);
