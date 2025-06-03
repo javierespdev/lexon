@@ -220,8 +220,8 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 %left PLUS MINUS               /* Addition and subtraction */
 
-%left MULTIPLICATION DIVISION MODULO
-                               /* Multiplication, division and modulo */
+%left MULTIPLICATION DIVISION MODULO INTEGER_DIVISION CONCATENATION
+                               /* Multiplication, division, modulo, integer division, concatenation */
 
 %left LPAREN RPAREN            /* Parentheses */
 
@@ -344,7 +344,7 @@ controlSymbol:  /* Epsilon rule*/
 
     /*  NEW in example 17 */
 if:    /* Simple conditional statement */
-    IF controlSymbol cond stmt 
+    IF controlSymbol cond stmt
     {
         // Create a new if statement node
         $$ = new lp::IfStmt($3, $4);
@@ -465,6 +465,17 @@ exp:    NUMBER
         {
           // Create a new division node    
           $$ = new lp::DivisionNode($1, $3);
+        }
+    |     exp INTEGER_DIVISION exp
+        {
+          // Create a new integer division node    
+          $$ = new lp::IntegerDivisionNode($1, $3);
+        }
+
+    |     exp CONCATENATION exp
+        {
+          // Create a new concatenation division node    
+          $$ = new lp::ConcatenationNode($1, $3);
         }
 
     |     LPAREN exp RPAREN
