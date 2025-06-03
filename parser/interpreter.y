@@ -183,19 +183,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 /* Tokens for mathematical functions */
 
-%token SIN COS SQRT LOG LOG10 EXP INTEGER ABS
-
-/* Tokens for mathematical constants */
-
-%token PI E GAMMA PHI DEG
-
-/* Other operator tokens */
-
-%token MOD
-
-/* Boolean constants */
-
-%token TRUE FALSE
+%token SIN COS SQRT LOG LOG10 EXP INTEGER ABS MOD
 
 /* Tokens with semantic values */
 
