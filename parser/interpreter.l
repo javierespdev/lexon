@@ -94,55 +94,12 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 
 <COMMENT_STATE>.                    {}
 
-    /****** Control flow keywords ******/
-"read"          { return READ; }
-"read_string"   { return READ_STRING; }
-"print"         { return PRINT; }
-
-"if"            { return IF; }
-"then"          { return THEN; }
-"else"          { return ELSE; }
-"end_if"        { return END_IF; }
-
-"while"         { return WHILE; }
-"do"            { return DO; }
-"end_while"     { return END_WHILE; }
-
-"repeat"        { return REPEAT; }
-"until"         { return UNTIL; }
-
-"for"           { return FOR; }
-"end_for"       { return END_FOR; }
-"from"          { return FROM; }
-"step"          { return STEP; }
-"to"            { return TO; }
-
-"switch"        { return SWITCH; }
-"case"          { return CASE; }
-"default"       { return DEFAULT; }
-"end_switch"    { return END_SWITCH; }
-
-    /****** Screen functions ******/
-"clear_screen"  { return CLEAR_SCREEN; }
-"place"         { return PLACE; }
-
-    /****** Math functions ******/
-"sin"           { return SIN; }
-"cos"           { return COS; }
-"sqrt"          { return SQRT; }
-"log"           { return LOG; }
-"log10"         { return LOG10; }
-"exp"           { return EXP; }
-"integer"       { return INTEGER; }
-"abs"           { return ABS; }
-
     /****** Numeric operators ******/
 "-"        { return MINUS; }
 "+"        { return PLUS; }
 "*"        { return MULTIPLICATION; }
 "/"        { return DIVISION; }
 "//"       { return INTEGER_DIVISION; }
-"mod"      { return MODULO; }
 "^"        { return POWER; }
 
     /****** Grouping symbols ******/
@@ -164,11 +121,6 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 "<="       { return LESS_OR_EQUAL; }
 ">"        { return GREATER_THAN; }
 "<"        { return LESS_THAN; }
-
-    /****** Logical operators ******/
-"not"      { return NOT; }
-"or"       { return OR; }
-"and"      { return AND; }
 
 [ \t]           {}   /* skip white space and tabular */
 
@@ -222,13 +174,21 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                     }
 
 {IDENTIFIER}        {
-                         std::string identifier(yytext);
+                        /* 
+                            Convert the input text (yytext) to lowercase and store it in 'identifier'
+                        */
+                        std::string identifier;
+
+                        for (int i = 0; yytext[i] != '\0'; ++i)
+                        {
+                            identifier += std::tolower(yytext[i]);
+                        }
 
                         /* 
                           strdup() function returns a pointer to a new string 
                           which  is a duplicate of the string yytext
                         */
-                          yylval.string =  strdup(yytext);
+                          yylval.string =  strdup(identifier.c_str());
 
                         /* If the identifier is not in the table of symbols then it is inserted */    
                          if (table.lookupSymbol(identifier) == false)

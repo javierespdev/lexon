@@ -67,16 +67,38 @@ static struct {
   \ brief Predefined keywords
 */
 static struct {
-          std::string name ;
-	      int token;
-	      } keyword[] = { 
-	                    {"print", PRINT},
-	                    {"read",  READ},
-						{"if",	  IF},   	// NEW in example 17
-						{"else",  ELSE}, 	// NEW in example 17
-						{"while", WHILE},	// NEW in example 17
-	                    {"",      0}
-	                   };
+    std::string name;
+    int token;
+    } keyword[] = {
+        {"read", READ},
+        {"read_string", READ_STRING},
+        {"print", PRINT},
+        {"if", IF},
+        {"then", THEN},
+        {"else", ELSE},
+        {"end_if", END_IF},
+        {"while", WHILE},
+        {"do", DO},
+        {"end_while", END_WHILE},
+        {"repeat", REPEAT},
+        {"until", UNTIL},
+        {"for", FOR},
+        {"end_for", END_FOR},
+        {"from", FROM},
+        {"step", STEP},
+        {"to", TO},
+        {"switch", SWITCH},
+        {"case", CASE},
+        {"default", DEFAULT},
+        {"end_switch", END_SWITCH},
+        {"clear_screen", CLEAR_SCREEN},
+        {"place", PLACE},
+        {"mod", MODULO},
+        {"not", NOT},
+        {"or", OR},
+        {"and", AND},
+        {"", 0}
+};
 
 
 
