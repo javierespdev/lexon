@@ -1627,6 +1627,116 @@ void lp::RepeatStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+void lp::ForStmt::printAST()
+{
+    std::cout << "ForStmt: " << std::endl;
+    // Identifier to initialize
+    std::cout << "\t";
+    std::cout << this->_id;
+
+    // From expresion
+    std::cout << "\t";
+    this->_from->printAST();
+
+    // To expresion
+    std::cout << "\t";
+    this->_to->printAST();
+
+    // Block statement
+    std::cout << "\t";
+
+    std::cout << std::endl;
+}
+
+void lp::ForStmt::evaluate()
+{
+    // Validate that _from is a numeric expression
+    if (this->_from->getType() != NUMBER)
+    {
+        warning("Runtime error: 'from' value is not numeric", "From");
+    }
+
+    // Validate that _to is a numeric expression
+    if (this->_to->getType() != NUMBER)
+    {
+        warning("Runtime error: 'to' value is not numeric", "To");
+    }
+
+    // If step is provided, validate it is numeric
+    if (this->_step != NULL && this->_step->getType() != NUMBER)
+    {
+        warning("Runtime error: 'step' value is not numeric", "Step");
+    }
+
+    // Check that the interval is valid (to >= from)
+    if (this->_to->evaluateNumber() < this->_from->evaluateNumber())
+    {
+        warning("Runtime error: 'to' must be greater than or equal to 'from'", "Interval");
+    }
+
+    lp::NumericVariable *loopVar = NULL;
+
+    // Check if the loop variable already exists in the symbol table
+    if (!table.lookupSymbol(this->_id))
+    {
+        // If not, create it initialized to 'from' value
+        loopVar = new lp::NumericVariable(this->_id, VARIABLE, NUMBER, this->_from->evaluateNumber());
+        table.installSymbol(loopVar);
+    }
+    else
+    {
+        // Get the existing symbol for the loop variable
+        lp::Variable *symbol = (lp::Variable *)table.getSymbol(this->_id);
+
+        if (symbol->getType() == NUMBER)
+        {
+            // If symbol is numeric, use it as the loop variable
+            loopVar = (lp::NumericVariable *)symbol;
+        }
+        else
+        {
+            // If symbol is not numeric, erase it and recreate as numeric
+            table.eraseSymbol(this->_id);
+            loopVar = new lp::NumericVariable(this->_id, VARIABLE, NUMBER);
+            table.installSymbol(loopVar);
+        }
+
+        // Initialize the loop variable value to 'from'
+        loopVar->setValue(this->_from->evaluateNumber());
+    }
+
+    // Default step value
+    double stepValue = 1.0;
+
+    // Validate and assign step value if provided
+    if (this->_step != NULL)
+    {
+        double evaluatedStep = this->_step->evaluateNumber();
+
+        if (evaluatedStep <= ERROR_BOUND)
+        {
+            warning("Runtime error", "Step has no increment, infinite loop risk");
+        }
+        else
+        {
+            stepValue = evaluatedStep;
+        }
+    }
+
+    // Loop execution: increment loopVar by stepValue until it passes 'to'
+    for (; loopVar->getValue() <= this->_to->evaluateNumber(); loopVar->setValue(loopVar->getValue() + stepValue))
+    {
+        // Evaluate all statements inside the loop body
+        for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter)
+        {
+            (*stmtIter)->evaluate();
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 void lp::BlockStmt::printAST() 
 {
   std::list<Statement *>::iterator stmtIter;

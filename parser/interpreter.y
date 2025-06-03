@@ -85,7 +85,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %type <expNode> exp cond
 %type <parameters> listOfExp  restOfListOfExp
 %type <stmts> stmtlist
-%type <st> stmt asgn print read if while block repeat
+%type <st> stmt asgn print read if while block repeat for
 %type <prog> program
 
 /* Tokens for control flow constructs */
@@ -234,6 +234,12 @@ stmt: SEMICOLON  /* Empty statement: ";" */
         // Default action
         // $$ = $1;
       }
+
+    | for 
+      {
+        // Default action
+        // $$ = $1;
+      }
     
     | block 
       {
@@ -289,8 +295,26 @@ while:  WHILE controlSymbol cond DO stmtlist END_WHILE
 
 repeat:  REPEAT controlSymbol stmtlist UNTIL cond
         {
-            // Create a new while repeat node
+            // Create a new repeat statement node
             $$ = new lp::RepeatStmt($3, $5);
+
+            // To control the interactive mode
+            control--;
+        }
+;
+
+for:  FOR VARIABLE FROM exp TO exp DO controlSymbol stmtlist END_FOR
+        {
+            // Create a new for statement node
+            $$ = new lp::ForStmt(std::string($2), $4, $6, $9);
+
+            // To control the interactive mode
+            control--;
+        }
+    | FOR VARIABLE FROM exp TO exp STEP exp DO controlSymbol stmtlist END_FOR
+        {
+            // Create a new for with step statement node
+            $$ = new lp::ForStmt(std::string($2), $4, $6, $8, $11);
 
             // To control the interactive mode
             control--;

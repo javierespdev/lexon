@@ -1926,6 +1926,78 @@ class RepeatStmt : public Statement
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 /*!	
+  \class   ForStmt
+  \brief   Definition of atributes and methods of ForStmt class
+  \note    ForStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class ForStmt : public Statement 
+{
+ private:
+  std::string _id;                        //!< Identifier (loop variable) of the For statement
+  ExpNode *_from;                         //!< Initial value expression
+  ExpNode *_to;                           //!< Final value expression
+  ExpNode *_step;                         //!< Step expression
+  std::list<Statement *> *_stmt;          //!< Statements in the body of the For loop
+
+  public:
+/*!		
+    \brief Constructor of the ForStmt class without step
+    \param id: Identifier of the loop variable
+    \param from: Expression representing the initial value
+    \param to: Expression representing the final value
+    \param stmt: List of statements inside the loop body
+    \post  A new ForStmt is created with the provided parameters
+*/
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, std::list<Statement *> *stmt)
+  {
+    this->_id = id;
+    this->_from = from;
+    this->_to = to;
+    this->_stmt = stmt;
+    this->_step = NULL;
+  }
+
+  
+/*!		
+    \brief Constructor of the ForStmt class with step
+    \param id: Identifier of the loop variable
+    \param from: Expression representing the initial value
+    \param to: Expression representing the final value
+    \param step: Expression representing the increment step
+    \param stmt: List of statements inside the loop body
+    \post  A new ForStmt is created with the provided parameters
+*/
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, ExpNode *step, std::list<Statement *> *stmt)
+  {
+    this->_id = id;
+    this->_from = from;
+    this->_to = to;
+    this->_stmt = stmt;
+    this->_step = step;
+  }
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
   \class   BlockStmt
   \brief   Definition of atributes and methods of BlockStmt class
   \note    BlockStmt Class publicly inherits from Statement class 
