@@ -246,6 +246,10 @@ stmt: SEMICOLON  /* Empty statement: ";" */
         // Default action
         // $$ = $1;
       }
+    | CLEAR_SCREEN
+      {
+        $$ = new lp::ClearScreenStmt();
+      }
 ;
 
 

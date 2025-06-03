@@ -2041,6 +2041,43 @@ class BlockStmt : public Statement
 
 
 /*!	
+  \class   ClearScreenStmt
+  \brief   Definition of attributes and methods of ClearScreenStmt class
+  \note    ClearScreenStmt class inherits from Statement and overrides printAST and evaluate
+*/
+class ClearScreenStmt : public Statement
+{
+ public:
+
+/*!		
+  \brief Constructor of ClearScreenStmt
+  \post  A new ClearScreenStmt object is created
+*/
+  inline ClearScreenStmt() {}
+
+  
+/*!	
+  \brief   Print the AST node for ClearScreenStmt
+  \return  void
+  \sa      evaluate
+*/
+  void printAST();
+
+  
+/*!	
+  \brief   Evaluate the ClearScreenStmt and clears the terminal screen
+  \return  void
+  \sa      printAST
+*/
+  void evaluate();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
   \class   AST
   \brief   Definition of atributes and methods of AST class
 */
@@ -2082,7 +2119,3 @@ class AST {
 
 // End of _AST_HPP_
 #endif
-
-
-
-
