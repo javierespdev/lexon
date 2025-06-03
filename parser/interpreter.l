@@ -54,10 +54,34 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 %%
 
     /****** Strings ******/
-{STRING}                            { 
-                                        yylval.string = strdup(yytext);
-                                        return STRING;
-                                    }
+{STRING}            {
+                        std::string result;
+                        for (size_t i = 1; i < yyleng - 1; ++i)
+                        {
+                            if (yytext[i] == '\\' && i + 1 < yyleng - 1)
+                            {
+                                switch (yytext[i + 1])
+                                {
+                                    case 'n': result += '\n'; break;
+                                    case 't': result += '\t'; break;
+                                    case 'r': result += '\r'; break;
+                                    case '\'': result += '\''; break;
+                                    default:
+                                        result += '\\';
+                                        result += yytext[i + 1];
+                                        break;
+                                }
+                                ++i;
+                            }
+                            else
+                            {
+                                result += yytext[i];
+                            }
+                        }
+
+                        yylval.string = strdup(result.c_str());
+                        return STRING;
+                    }
 
     /****** Comments ******/
 {COMMENT_IN_ONE_LINE}               {}
@@ -217,12 +241,12 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 
 "*"        { return MULTIPLICATION; }
 "/"        { return DIVISION; }
- /*"//"    { return INTEGER_DIVISION; }*/
+"//"       { return INTEGER_DIVISION; }
 
 "("        { return LPAREN; }
 ")"        { return RPAREN; }
 
- /*"||"    { return CONCATENATION; }*/
+"||"       { return CONCATENATION; }
 
 "mod"      { return MODULO; }
 
