@@ -1845,7 +1845,7 @@ class WhileStmt : public Statement
 {
  private:
   ExpNode *_cond; //!< Condicion of the while statement
-  Statement *_stmt; //!< Statement of the body of the while loop
+  std::list<Statement *> *_stmt; //!< Statements of the body of the while loop
 
   public:
 /*!		
@@ -1854,7 +1854,7 @@ class WhileStmt : public Statement
 	\param statement: Statement of the body of the loop 
 	\post  A new WhileStmt is created with the parameters
 */
-  WhileStmt(ExpNode *condition, Statement *statement)
+  WhileStmt(ExpNode *condition, std::list<Statement *> *statement)
 	{
 		this->_cond = condition;
 		this->_stmt = statement;

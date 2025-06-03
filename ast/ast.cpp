@@ -1571,7 +1571,10 @@ void lp::WhileStmt::printAST()
 
   // Body of the while loop
   std::cout << "\t";
-  this->_stmt->printAST();
+  for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) 
+  {
+      (*stmtIter)->printAST();
+  }
 
   std::cout << std::endl;
 }
@@ -1582,9 +1585,11 @@ void lp::WhileStmt::evaluate()
   // While the condition is true. the body is run 
   while (this->_cond->evaluateBool() == true)
   {	
-	  this->_stmt->evaluate();
+	    for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) 
+        {
+            (*stmtIter)->evaluate();
+        }
   }
-
 }
 
 

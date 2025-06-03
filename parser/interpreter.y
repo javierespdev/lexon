@@ -254,21 +254,27 @@ controlSymbol:  /* Epsilon rule*/
 if:
     IF controlSymbol cond THEN stmtlist END_IF
     {
+        // Create a new if statement node
         $$ = new lp::IfStmt($3, $5);
+
+        // To control the interactive mode
         control--;
     }
     
   | IF controlSymbol cond THEN stmtlist ELSE stmtlist END_IF
     {
+        // Create a new if-else statement node
         $$ = new lp::IfStmt($3, $5, $7);
+
+        // To control the interactive mode
         control--;
     }
 ;
 
-while:  WHILE controlSymbol cond stmt 
+while:  WHILE controlSymbol cond DO stmtlist END_WHILE
         {
             // Create a new while statement node
-            $$ = new lp::WhileStmt($3, $4);
+            $$ = new lp::WhileStmt($3, $5);
 
             // To control the interactive mode
             control--;
