@@ -1522,34 +1522,42 @@ void lp::IfStmt::printAST()
   std::cout << "\t";
   this->_cond->printAST();
 
-  // Consequent
   std::cout << "\t";
-  this->_stmt1->printAST();
 
- // The alternative is printASTed if exists
-  if (this->_stmt2 != NULL)
-     {  
-       std::cout << "\t";
-	   this->_stmt2->printAST();
-     }
+    for (std::list<Statement*>::iterator stmtIter = _stmt1->begin(); stmtIter != _stmt1->end(); ++stmtIter) 
+    {
+        (*stmtIter)->printAST();
+    }
 
-  std::cout << std::endl;
+    if(this->_stmt2 != NULL)
+    {
+        for (std::list<Statement*>::iterator stmtIter = _stmt2->begin(); stmtIter != _stmt2->end(); ++stmtIter) 
+        {
+            (*stmtIter)->printAST();
+        }
+    }
+
+    std::cout << std::endl;
 }
 
 
 void lp::IfStmt::evaluate() 
 {
-   // If the condition is true,
-	if (this->_cond->evaluateBool() == true )
-     // the consequent is run 
-	  this->_stmt1->evaluate();
-
-    // Otherwise, the alternative is run if exists
-	else if (this->_stmt2 != NULL)
-		  this->_stmt2->evaluate();
+    if (this->_cond->evaluateBool() == true)
+    {
+        for (std::list<Statement*>::iterator stmtIter = _stmt1->begin(); stmtIter != _stmt1->end(); ++stmtIter) 
+        {
+            (*stmtIter)->evaluate();
+        }
+    }
+    else if(this->_stmt2 != NULL)
+    {
+        for (std::list<Statement*>::iterator stmtIter = _stmt2->begin(); stmtIter != _stmt2->end(); ++stmtIter) 
+        {
+            (*stmtIter)->evaluate();
+        }
+    }
 }
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

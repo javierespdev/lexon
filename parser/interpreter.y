@@ -151,8 +151,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 
 /* Type of the non-terminal symbols */
 // New in example 17: cond
-%type <expNode> exp cond str
-
+%type <expNode> exp cond
 /* New in example 14 */
 %type <parameters> listOfExp  restOfListOfExp
 
@@ -330,24 +329,16 @@ controlSymbol:  /* Epsilon rule*/
         }
     ;
 
-    /*  NEW in example 17 */
-if:    /* Simple conditional statement */
-    IF controlSymbol cond stmt
+if:
+    IF controlSymbol cond THEN stmtlist END_IF
     {
-        // Create a new if statement node
-        $$ = new lp::IfStmt($3, $4);
-
-        // To control the interactive mode
+        $$ = new lp::IfStmt($3, $5);
         control--;
     }
-
-    /* Compound conditional statement */
-    | IF controlSymbol cond stmt  ELSE stmt 
+    
+  | IF controlSymbol cond THEN stmtlist ELSE stmtlist END_IF
     {
-        // Create a new if statement node
-        $$ = new lp::IfStmt($3, $4, $6);
-
-        // To control the interactive mode
+        $$ = new lp::IfStmt($3, $5, $7);
         control--;
     }
 ;
@@ -382,10 +373,6 @@ asgn:   VARIABLE ASSIGNMENT exp
             // Create a new assignment node
             $$ = new lp::AssignmentStmt($1, (lp::AssignmentStmt *) $3);
         }
-    |  VARIABLE ASSIGNMENT str 
-        {
-            $$ = new lp::AssignmentStmt($1, $3);
-        }
 
        /* NEW in example 11 */ 
     | CONSTANT ASSIGNMENT exp 
@@ -415,7 +402,7 @@ read:   READ LPAREN VARIABLE RPAREN
       | READ_STRING LPAREN VARIABLE RPAREN  
         {
             // Create a new read node
-             $$ = new lp::ReadStringStmt($3);
+             $$ = new lp::ReadStmt($3);
         }
 
         /* NEW rule in example 11 */
@@ -651,9 +638,7 @@ restOfListOfExp:
             }
 ;
 
-str:
-         STRING { $$ = new lp::StringNode(std::string($1)); }
-;
+
 %%
 
 
