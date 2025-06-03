@@ -1592,8 +1592,36 @@ void lp::WhileStmt::evaluate()
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void lp::RepeatStmt::printAST() 
+{
+  std::cout << "RepeatStmt: "  << std::endl;
+  // Condition
+  std::cout << "\t";
+  this->_cond->printAST();
+
+  // Body of the while loop
+  std::cout << "\t";
+  for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) 
+  {
+      (*stmtIter)->printAST();
+  }
+
+  std::cout << std::endl;
+}
 
 
+void lp::RepeatStmt::evaluate() 
+{
+  // While the condition is false. the body is run 
+  do {
+    for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) {
+        (*stmtIter)->evaluate();
+     }
+  } while (!_cond->evaluateBool());
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
