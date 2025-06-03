@@ -259,12 +259,12 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                     }
 
 <<EOF>> { /* The interpreter finishes when finds the end of file character */
-          PLACE(24,10);
+            PLACE(24,10);
             std::cout <<  BICYAN;
-             std::cout <<  ">>>>>>> End of program <<<<<<<";
-           std::cout << std::endl;
-             std::cout << RESET;
-          PLACE(25,1);
+            std::cout <<  ">>>>>>> End of program <<<<<<<";
+            std::cout << std::endl;
+            std::cout << RESET;
+            PLACE(25,1);
             return 0;
         }
 
@@ -287,4 +287,3 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                                    BEGIN(INITIAL);
                              }
 %%
-
