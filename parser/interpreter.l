@@ -136,17 +136,39 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 "integer"       { return INTEGER; }
 "abs"           { return ABS; }
 
-    /****** Math constants ******/
-"pi"            { return PI; }
-"e"             { return E; }
-"gamma"         { return GAMMA; }
-"phi"           { return PHI; }
-"deg"           { return DEG; }
+    /****** Numeric operators ******/
+"-"        { return MINUS; }
+"+"        { return PLUS; }
+"*"        { return MULTIPLICATION; }
+"/"        { return DIVISION; }
+"//"       { return INTEGER_DIVISION; }
+"mod"      { return MODULO; }
+"^"        { return POWER; }
 
-    /****** Boolean values ******/
-"true"          { return TRUE; }
-"false"         { return FALSE; }
+    /****** Grouping symbols ******/
+"("        { return LPAREN; }
+")"        { return RPAREN; }
+"{"        { return LETFCURLYBRACKET; }
+"}"        { return RIGHTCURLYBRACKET; }
 
+    /****** Assignment ******/
+":="       { return ASSIGNMENT; }
+
+    /****** String operators ******/
+"||"       { return CONCATENATION; }
+
+    /****** Comparison operators ******/
+"="        { return EQUAL; }
+"<>"       { return NOT_EQUAL; }
+">="       { return GREATER_OR_EQUAL; }
+"<="       { return LESS_OR_EQUAL; }
+">"        { return GREATER_THAN; }
+"<"        { return LESS_THAN; }
+
+    /****** Logical operators ******/
+"not"      { return NOT; }
+"or"       { return OR; }
+"and"      { return AND; }
 
 [ \t]           {}   /* skip white space and tabular */
 
@@ -236,55 +258,13 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             }
                     }
 
-"-"        { return MINUS;  }
-"+"        { return PLUS;   }
-
-"*"        { return MULTIPLICATION; }
-"/"        { return DIVISION; }
-"//"       { return INTEGER_DIVISION; }
-
-"("        { return LPAREN; }
-")"        { return RPAREN; }
-
-"||"       { return CONCATENATION; }
-
-"mod"      { return MODULO; }
-
-"^"        { return POWER; }
-
-":="       { return ASSIGNMENT; }
-
-
-"="        { return EQUAL; }
-
-"<>"       { return NOT_EQUAL; }
-
-">="       { return GREATER_OR_EQUAL; }
-
-"<="       { return LESS_OR_EQUAL; }
-
-">"        { return GREATER_THAN; }
-
-"<"        { return LESS_THAN; }
-
-"not"      { return NOT; }
-
-"or"       { return OR; }
-
-"and"      { return AND; }
-
-"{"        { return LETFCURLYBRACKET; }
-
-"}"        { return RIGHTCURLYBRACKET; }
-
 <<EOF>> { /* The interpreter finishes when finds the end of file character */
-        /*  PLACE(24,10);
+          PLACE(24,10);
             std::cout <<  BICYAN;
              std::cout <<  ">>>>>>> End of program <<<<<<<";
            std::cout << std::endl;
              std::cout << RESET;
           PLACE(25,1);
-        */
             return 0;
         }
 
