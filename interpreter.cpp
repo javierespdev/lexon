@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <string>
+
 //
 
 /////////////////////////////
@@ -26,17 +27,13 @@
   IMPORTANT: must be written before interpreter.tab.h
 */
 #include "ast/ast.hpp"
+#include "includes/globals.hpp"
 ////////////////////////////////////////
 
 #include "./parser/interpreter.tab.h"
 
-int lineNumber = 1; //!< Line counter
-
-bool interactiveMode; //!< Control the interactive mode of execution of the interpreter
-
 int control = 0; //!< To control the interactive mode in "if" and "while" sentences 
 
-extern FILE * yyin; //!< Standard input device for yylex() 
 std::string progname; //!<  Program name
 //
 
@@ -88,6 +85,7 @@ lp::Table table; //!< Table of Symbols
 	\note   C++ requires that main returns an int value
 	\sa     yyparse, yylex
 */
+
 int main(int argc, char *argv[])
 {
 	/* Option -t needed to debug */
@@ -104,7 +102,7 @@ int main(int argc, char *argv[])
  if (argc == 2) 
  {
      yyin = fopen(argv[1],"r");
-
+     fileName = argv[1];
 	 interactiveMode = false;
  }
 else
@@ -136,7 +134,7 @@ else
  if (interactiveMode == false)
  {
 
-       root->printAST();  
+       // root->printAST();  
        root->evaluate(); 
  }
 

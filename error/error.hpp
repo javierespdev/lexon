@@ -16,14 +16,44 @@
 */
 void yyerror(std::string errorMessage);
 
-/*! 
-	\brief  Show the error messages
-	\return void
-	\param  errorMessage1: first error message
-	\param  errorMessage2: second error message
-	\sa     yyerror, execerror
+/*!
+  \brief Shows a lexical warning message with detailed information.
+
+  \param filename    Name of the source file where the error occurred.
+  \param line        Line number of the error location.
+  \param column      Column number (character position) where the error starts or ends.
+  \param token       The lexical token that caused the warning.
+  \param sourceLine  The entire source line text containing the token.
+  \param errorMsg    Description of the lexical error or warning message.
+
+  \sa yyerror, parserWarning
 */
-void warning(std::string errorMessage1,std::string errorMessage2);
+void lexicalWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& token,
+             const std::string& sourceLine,
+             const std::string& errorMsg);
+
+
+/*!
+  \brief Shows a parser error message with detailed information.
+
+  \param filename    Name of the source file where the error occurred.
+  \param line        Line number of the error location.
+  \param column      Column number (character position) where the error occurred.
+  \param errorMsg    Description of the parser error.
+  \param sourceLine  The entire source line text containing the error.
+  \param suggestion  A hint or suggestion to help fix the error.
+
+  \sa lexicalWarning, yyerror
+*/
+void parserWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& errorMsg,
+             const std::string& sourceLine,
+             const std::string& suggestion);
 
 
 /*! 

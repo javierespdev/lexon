@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <list>
+#include <sstream>
 
 // Para usar la funciones pow y std::abs
 #include <cmath>
@@ -20,6 +21,7 @@
 
 // warning
 #include "../error/error.hpp"
+#include "../includes/globals.hpp"
 
 // Macros for the screen
 #include "../includes/macros.hpp"
@@ -84,9 +86,12 @@ double lp::VariableNode::evaluateNumber()
 		result = var->getValue();
 	}
 	else
-	{
-		warning("Runtime error in evaluateNumber(): the variable is not numeric", 
-				   this->_id);
+	{	
+        errorMsg = "Variable is not numeric.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Check that the variable is assigned a numeric value before using it in a numeric expression.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+                sourceLine, suggestion);
 	}
 
 	// Return the value of the NumericVariable
@@ -108,8 +113,11 @@ bool lp::VariableNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error in evaluateBool(): the variable is not boolean",
-				   this->_id);
+        errorMsg = "Variable is not bool.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Check that the variable is assigned a bool value before using it in a bool expression.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+                sourceLine, suggestion);
 	}
 
 	// Return the value of the LogicalVariable
@@ -131,8 +139,11 @@ std::string lp::VariableNode::evaluateString()
 	}
 	else
 	{
-		warning("Runtime error in evaluateString(): the variable is not string",
-				   this->_id);
+        errorMsg = "Variable is not string.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Check that the variable is assigned a string value before using it in a string expression.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+                sourceLine, suggestion);
 	}
 
 	// Return the value of the StringVariable
@@ -173,8 +184,11 @@ double lp::ConstantNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error in evaluateNumber(): the constant is not numeric", 
-				   this->_id);
+		errorMsg = "Constant is not numeric.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the constant is assigned a numeric value before using it in a numeric expression.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	// Return the value of the NumericVariable
@@ -195,8 +209,11 @@ bool lp::ConstantNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error in evaluateBool(): the constant is not boolean",
-				   this->_id);
+		errorMsg = "Constant is not bool.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the constant is assigned a bool value before using it in a bool expression.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	// Return the value of the LogicalVariable
@@ -255,7 +272,12 @@ int lp::NumericUnaryOperatorNode::getType()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types for", "Numeric Unary Operator");
+		// warning("Runtime error: incompatible types for", "Numeric Unary Operator");
+		errorMsg = "Incompatible types for \"Numeric Unary Operator\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -274,7 +296,11 @@ int lp::LogicalUnaryOperatorNode::getType()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types for", "Logical Unary Operator");
+		errorMsg = "Incompatible types for \"Logical Unary Operator\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a boolean value before using it in a logical operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 	
 	return result;
@@ -291,7 +317,11 @@ int lp::NumericOperatorNode::getType()
 	if ( (this->_left->getType() == NUMBER) and (this->_right->getType() == NUMBER))
 		result = NUMBER;
 	else
-		warning("Runtime error: incompatible types for", "Numeric Operator");
+		errorMsg = "Incompatible types for \"Integer Division\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both operands are numeric before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 
 	return	result;
 }
@@ -306,8 +336,13 @@ int lp::StringOperatorNode::getType()
 		
 	if ( (this->_left->getType() == STRING) and (this->_right->getType() == STRING))
 		result = STRING;
-	else
-		warning("Runtime error: incompatible types for", "String Operator");
+	else {
+		errorMsg = "Incompatible types for \"String Operator\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both operands are strings before using them in a string operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg,
+				sourceLine, suggestion);
+        }
 
 	return	result;
 }
@@ -325,7 +360,11 @@ int lp::RelationalOperatorNode::getType()
 	else if ( (this->_left->getType() == BOOL) and (this->_right->getType() == BOOL))
 		result = BOOL;
 	else
-		warning("Runtime error: incompatible types for", "Relational Operator");
+		errorMsg = "Incompatible types for \"Relational Operator\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both operands are of the same type before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 
 	return	result;
 }
@@ -344,7 +383,13 @@ int lp::LogicalOperatorNode:: getType()
 		result = BOOL;
 	}
 	else
-		warning("Runtime error: incompatible types for", "Logical Operator");
+	{
+		errorMsg = "Incompatible types for \"Logical Operator\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both operands are boolean before using them in a logical operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
+	}
 
 	return	result;
 }
@@ -373,7 +418,11 @@ double lp::UnaryMinusNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for ", "UnaryMinus");
+		errorMsg = "Expression is not numeric in UnaryMinusNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -402,7 +451,11 @@ double lp::UnaryPlusNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for ","UnaryPlus");
+		errorMsg = "Expression is not numeric in UnaryPlusNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -432,7 +485,11 @@ double lp::PlusNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for ", "Plus");
+		errorMsg = "Expressions are not numeric in PlusNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -462,7 +519,11 @@ double lp::MinusNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for ", "Minus");
+		errorMsg = "Expressions are not numeric in MinusNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -492,7 +553,11 @@ double lp::MultiplicationNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for ","Multiplication");
+		errorMsg = "Expressions are not numeric in MultiplicationNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -531,12 +596,20 @@ double lp::DivisionNode::evaluateNumber()
 		}
 		else
 		{
-			warning("Runtime error", "Division by zero");
+			errorMsg = "Division by zero in DivisionNode.";
+			sourceLine = readLineFromFile(yyin, lineNumber);
+			suggestion = "Check that the divisor is not zero before using it in a division operation.";
+			parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+					sourceLine, suggestion);
 		}
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for", "Division");
+		errorMsg = "Expressions are not numeric in DivisionNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -579,17 +652,30 @@ double lp::IntegerDivisionNode::evaluateNumber()
 			}
 			else
 			{
-				warning("Runtime error", "Division by zero (after integer conversion)");
+				errorMsg = "Division by zero in IntegerDivisionNode.";
+				sourceLine = readLineFromFile(yyin, lineNumber);
+				suggestion = "Check that the divisor is not zero before using it in an integer division operation.";
+				parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+						sourceLine, suggestion);
 			}
 		}
 		else
 		{
-			warning("Runtime error", "Division by zero");
+			// warning("Runtime error", "Division by zero");
+			errorMsg = "Division by zero in IntegerDivisionNode.";
+			sourceLine = readLineFromFile(yyin, lineNumber);
+			suggestion = "Check that the divisor is not zero before using it in an integer division operation.";
+			parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+					sourceLine, suggestion);
 		}
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for", "Division");
+		errorMsg = "Expressions are not numeric in IntegerDivisionNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -622,7 +708,11 @@ std::string lp::ConcatenationNode::evaluateString()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not strings for", "Concatenation");
+		errorMsg = "Expressions are not strings in ConcatenationNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned string values before using them in a string concatenation operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -655,11 +745,21 @@ double lp::ModuloNode::evaluateNumber()
     	if(std::abs(rightNumber) > ERROR_BOUND)
 				result = (int) leftNumber % (int) rightNumber;
 		else
-			warning("Runtime error", "Division by zero");
+			// warning("Runtime error", "Division by zero");
+			errorMsg = "Division by zero in ModuloNode.";
+			sourceLine = readLineFromFile(yyin, lineNumber);
+			suggestion = "Check that the divisor is not zero before using it in a modulo operation.";
+			parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+					sourceLine, suggestion);
+			
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for", "Modulo");
+		errorMsg = "Expressions are not numeric in ModuloNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -690,7 +790,11 @@ double lp::PowerNode::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: the expressions are not numeric for", "Power");
+		errorMsg = "Expressions are not numeric in PowerNode.";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a power operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -731,7 +835,11 @@ int lp::BuiltinFunctionNode_1::getType()
 	if (this->_exp->getType() == NUMBER)
 		result = NUMBER;
 	else
-		warning("Runtime error: incompatible type for", "BuiltinFunctionNode_1");
+		errorMsg = "Incompatible type for \"BuiltinFunctionNode_1\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 
 	return	result;
 }
@@ -761,7 +869,11 @@ double lp::BuiltinFunctionNode_1::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: incompatible type of parameter for ", this->_id);
+		errorMsg = "Incompatible type of parameter for BuiltinFunctionNode_1";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -778,7 +890,11 @@ int lp::BuiltinFunctionNode_2::getType()
 	if (this->_exp1->getType() == this->_exp2->getType())
 		result = this->_exp1->getType();
 	else
-		warning("Runtime error: incompatible types for", "BuiltinFunctionNode_2");
+		errorMsg = "Incompatible types for \"BuiltinFunctionNode_2\"";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned values of the same type before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 
 	return	result;
 }
@@ -811,7 +927,11 @@ double lp::BuiltinFunctionNode_2::evaluateNumber()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", this->_id);
+		errorMsg = "Incompatible types of parameters for BuiltinFunctionNode_2";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
   return result;
@@ -845,7 +965,11 @@ bool lp::GreaterThanNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Greater than");
+		errorMsg = "Incompatible types of parameters for operator Greater than";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -878,7 +1002,11 @@ bool lp::GreaterOrEqualNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Greater or equal than");
+		errorMsg = "Incompatible types of parameters for operator Greater or equal than";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -912,7 +1040,11 @@ bool lp::LessThanNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Less than");
+		errorMsg = "Incompatible types of parameters for operator Less than";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -945,7 +1077,11 @@ bool lp::LessOrEqualNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Less or equal than");
+		errorMsg = "Incompatible types of parameters for operator Less or equal than";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -989,14 +1125,24 @@ bool lp::EqualNode::evaluateBool()
 				result = (leftBoolean == rightBoolean);
 				break;
 		  default:
-				warning("Runtime error: incompatible types of parameters for ", 
-								"Equal operator");				
+				// warning("Runtime error: incompatible types of parameters for ", 
+								// "Equal operator");
+				errorMsg = "Incompatible types of parameters for Equal operator";
+				sourceLine = readLineFromFile(yyin, lineNumber);
+				suggestion = "Check that both expressions are assigned values of the same type before using them in a relational operation.";
+				parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+						sourceLine, suggestion);
+				break;
 		}
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", 
-						"Equal operator");
+		// warning("Runtime error: incompatible types of parameters for ", 
+						// "Equal operator");
+		errorMsg = "Incompatible types of parameters for Equal operator";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned values of the same type before using them in a relational operation.";
+		
 	}
 
 	return result;
@@ -1039,13 +1185,24 @@ bool lp::NotEqualNode::evaluateBool()
 				result = (leftBoolean != rightBoolean);
 				break;
 		  default:
-				warning("Runtime error: incompatible types of parameters for ", 
-								"Not Equal operator");				
+				// warning("Runtime error: incompatible types of parameters for ", 
+								// "Not Equal operator");
+				errorMsg = "Incompatible types of parameters for Not Equal operator";
+				sourceLine = readLineFromFile(yyin, lineNumber);
+				suggestion = "Check that both expressions are assigned values of the same type before using them in a relational operation.";
+				parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+						sourceLine, suggestion);
+				break;
 		}
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "Not Equal operator");
+		// warning("Runtime error: incompatible types of parameters for ", "Not Equal operator");
+		errorMsg = "Incompatible types of parameters for Not Equal operator";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned values of the same type before using them in a relational operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -1080,7 +1237,12 @@ bool lp::AndNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator And");
+		// warning("Runtime error: incompatible types of parameters for ", "operator And");
+		errorMsg = "Incompatible types of parameters for operator And";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned boolean values before using them in a logical operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -1115,7 +1277,12 @@ bool lp::OrNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Or");
+		// warning("Runtime error: incompatible types of parameters for ", "operator Or");
+		errorMsg = "Incompatible types of parameters for operator Or";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that both expressions are assigned boolean values before using them in a logical operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -1143,7 +1310,12 @@ bool lp::NotNode::evaluateBool()
 	}
 	else
 	{
-		warning("Runtime error: incompatible types of parameters for ", "operator Not");
+		// warning("Runtime error: incompatible types of parameters for ", "operator Not");
+		errorMsg = "Incompatible types of parameters for operator Not";
+		sourceLine = readLineFromFile(yyin, lineNumber);
+		suggestion = "Check that the expression is assigned a boolean value before using it in a logical operation.";
+		parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+				sourceLine, suggestion);
 	}
 
 	return result;
@@ -1267,7 +1439,12 @@ void lp::AssignmentStmt::evaluate()
 			break;
 
 			default:
-				warning("Runtime error: incompatible type of expression for ", "Assigment");
+				errorMsg = "Incompatible type of expression for Assignment";
+				sourceLine = readLineFromFile(yyin, lineNumber);
+				suggestion = "Check that the expression is assigned a value of the correct type before using it in an assignment operation.";
+				parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+						sourceLine, suggestion);
+				break;
 		}
 
 	}
@@ -1350,8 +1527,8 @@ void lp::AssignmentStmt::evaluate()
 			}
 			break;
 
-			default:
-				warning("Runtime error: incompatible type of expression for ", "Assigment");
+			// default:
+				// warning("Runtime error: incompatible type of expression for ", "Assigment");
 		}
 	}
 }
@@ -1402,12 +1579,20 @@ void lp::PrintStmt::evaluate()
                     std::cout << this->_exp->evaluateString() << std::endl;
                     break;
                 default:
-                    warning("Runtime error: unknown variable type in print", "");
+                    std::string errorMsg = "Unknown variable type in print statement.";
+                    std::string sourceLine = readLineFromFile(yyin, lineNumber);
+                    std::string suggestion = "Check variable type before printing.";
+                    parserWarning(fileName, lineNumber, columnNumber, errorMsg, sourceLine, suggestion);
+                    break;
             }
             break;
         
 		default:
-			warning("Runtime error: incompatible type for ", "print");
+			std::string errorMsg = "Incompatible type for print statement.";
+            std::string sourceLine = readLineFromFile(yyin, lineNumber);
+            std::string suggestion = "Ensure the expression is a number, boolean, or string.";
+            parserWarning(fileName, lineNumber, columnNumber, errorMsg, sourceLine, suggestion);
+            break;
 	}
 }
 
@@ -1653,25 +1838,41 @@ void lp::ForStmt::evaluate()
     // Validate that _from is a numeric expression
     if (this->_from->getType() != NUMBER)
     {
-        warning("Runtime error: 'from' value is not numeric", "From");
+        errorMsg = "'from' value is not numeric.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Ensure the 'from' expression evaluates to a numeric value.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg,
+                    sourceLine, suggestion);
     }
 
     // Validate that _to is a numeric expression
     if (this->_to->getType() != NUMBER)
     {
-        warning("Runtime error: 'to' value is not numeric", "To");
+        errorMsg = "'to' value is not numeric.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Ensure the 'to' expression evaluates to a numeric value.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg,
+                    sourceLine, suggestion);
     }
 
     // If step is provided, validate it is numeric
     if (this->_step != NULL && this->_step->getType() != NUMBER)
     {
-        warning("Runtime error: 'step' value is not numeric", "Step");
+        errorMsg = "'step' value is not numeric.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Ensure the 'step' expression evaluates to a numeric value.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg,
+                    sourceLine, suggestion);
     }
 
     // Check that the interval is valid (to >= from)
     if (this->_to->evaluateNumber() < this->_from->evaluateNumber())
     {
-        warning("Runtime error: 'to' must be greater than or equal to 'from'", "Interval");
+        errorMsg = "Invalid interval: loop upper bound is less than lower bound.";
+        sourceLine = readLineFromFile(yyin, lineNumber);
+        suggestion = "Consider swapping 'from' and 'to' values or checking loop direction.";
+        parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+                sourceLine, suggestion);
     }
 
     lp::NumericVariable *loopVar = NULL;
@@ -1715,7 +1916,11 @@ void lp::ForStmt::evaluate()
 
         if (evaluatedStep <= ERROR_BOUND)
         {
-            warning("Runtime error", "Step has no increment, infinite loop risk");
+            errorMsg = "Step value must be a numeric constant greater than the error bound.";
+            sourceLine = readLineFromFile(yyin, lineNumber);
+            suggestion = "Verify that the step value is numeric and exceeds the defined error bound before use.";
+            parserWarning(fileName, lineNumber, columnNumber, errorMsg, 
+                sourceLine, suggestion);
         }
         else
         {

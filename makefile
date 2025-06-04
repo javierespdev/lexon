@@ -16,7 +16,7 @@ LFLAGS = -lfl
 #LFLAGS = -ll
 
 # Objects
-OBJECTS= $(NAME).o
+OBJECTS= $(NAME).o includes/globals.o
 OBJECTS-PARSER = parser/*.o
 OBJECTS-ERROR = error/*.o
 OBJECTS-TABLE = table/*.o
@@ -28,7 +28,7 @@ OBJECTS-AST = ast/*.o
 # MODIFIED in example 10: ./table/init.hpp
 # MODIFIED in example 16: ./ast/ast.hpp
 INCLUDES = ./parser/interpreter.tab.h ./error/error.hpp \
-			./table/table.hpp \
+			./table/table.hpp ./includes/globals.hpp \
 			./table/init.hpp \
 			./ast/ast.hpp
 

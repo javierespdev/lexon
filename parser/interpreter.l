@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 /* Project headers */
 #include "../includes/macros.hpp"
@@ -16,10 +17,13 @@
 #include "../error/error.hpp"
 #include "../table/table.hpp"
 #include "../table/numericVariable.hpp"
+#include "../includes/globals.hpp"
 
 /* External variables */
 extern lp::Table table;        /* Symbol table */
-extern int lineNumber;         /* Current line number for error reporting */
+
+#include <cstdio>
+#include <string>
 
 %}
 
@@ -80,6 +84,8 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                         }
 
                         yylval.string = strdup(result.c_str());
+                        columnNumber += yyleng;
+                        currentLine += yytext;
                         return STRING;
                     }
 
@@ -95,46 +101,126 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 <COMMENT_STATE>.                    {}
 
     /****** Numeric operators ******/
-"-"        { return MINUS; }
-"+"        { return PLUS; }
-"*"        { return MULTIPLICATION; }
-"/"        { return DIVISION; }
-"//"       { return INTEGER_DIVISION; }
-"^"        { return POWER; }
+"-"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return MINUS;
+          }
+"+"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return PLUS;
+          }
+"*"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return MULTIPLICATION;
+          }
+"/"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return DIVISION;
+          }
+"//"       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return INTEGER_DIVISION;
+          }
+"^"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return POWER;
+          }
 
     /****** Grouping symbols ******/
-"("        { return LPAREN; }
-")"        { return RPAREN; }
-"{"        { return LETFCURLYBRACKET; }
-"}"        { return RIGHTCURLYBRACKET; }
+"("        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return LPAREN;
+          }
+")"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return RPAREN;
+          }
+"{"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return LETFCURLYBRACKET;
+          }
+"}"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return RIGHTCURLYBRACKET;
+          }
 
     /****** Assignment ******/
-":="       { return ASSIGNMENT; }
+":="       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return ASSIGNMENT;
+          }
 
     /****** String operators ******/
-"||"       { return CONCATENATION; }
+"||"       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return CONCATENATION;
+          }
 
     /****** Comparison operators ******/
-"="        { return EQUAL; }
-"<>"       { return NOT_EQUAL; }
-">="       { return GREATER_OR_EQUAL; }
-"<="       { return LESS_OR_EQUAL; }
-">"        { return GREATER_THAN; }
-"<"        { return LESS_THAN; }
+"="        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return EQUAL;
+          }
+"<>"       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return NOT_EQUAL;
+          }
+">="       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return GREATER_OR_EQUAL;
+          }
+"<="       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return LESS_OR_EQUAL;
+          }
+">"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return GREATER_THAN;
+          }
+"<"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return LESS_THAN;
+          }
 
-[ \t]           {}   /* skip white space and tabular */
+[ \t]           {
+                    columnNumber += yyleng;
+                    currentLine += yytext;
+              }   /* skip white space and tabular */
 
-\n              { 
-                    /* Line counter */
-                    lineNumber++; 
-                }
+\n              {
+                    lineNumber++;
+                    columnNumber = 1;
+                    currentLine = "";
+              }
 
 ";"             {
+                    columnNumber += yyleng;
+                    currentLine += yytext;
                     return SEMICOLON;
                 }
 
 
 ","             {
+                    columnNumber += yyleng;
+                    currentLine += yytext;
                     return COMMA;
                 }
 
@@ -142,6 +228,8 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 {NUMBER1}|{NUMBER2}|{NUMBER3}  {
                       /* Conversion of type and sending of the numerical value to the parser */
                        yylval.number = atof(yytext); 
+                       columnNumber += yyleng;
+                       currentLine += yytext;
                        return NUMBER; 
                     }
 
@@ -151,6 +239,9 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             An identifier with two underscores is not allowed
                             Change to error state
                         */
+                        columnNumber += yyleng;
+                        currentLine += yytext;
+                        errorMsg = "Not valid identifier with double underscore";
                         BEGIN(ERROR); 
                         yymore(); 
                     }
@@ -160,6 +251,9 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             An identifier with an underscore at the end is not allowed
                             Change to error state
                         */
+                        columnNumber += yyleng;
+                        currentLine += yytext;
+                        errorMsg = "Not valid identifier with underscore at the end";
                         BEGIN(ERROR); 
                         yymore(); 
                     }
@@ -169,6 +263,9 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             An identifier with an underscore at the beginning or a digit at the beginning is not allowed
                             Change to error state
                         */
+                        columnNumber += yyleng;
+                        currentLine += yytext;
+                        errorMsg = "Not valid identifier with underscore at the beginning or a digit at the beginning";
                         BEGIN(ERROR); 
                         yymore(); 
                     }
@@ -202,6 +299,8 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                                 /* A pointer to the new NumericVariable is inserted into the table of symbols */
                                 table.installSymbol(n);
 
+                                columnNumber += yyleng;
+                                currentLine += yytext;
                                 return VARIABLE;
                             }
 
@@ -213,37 +312,33 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             {
                                 lp::Symbol    *s = table.getSymbol(identifier);
 
+                                columnNumber += yyleng;
+                                currentLine += yytext;
                                 /*  If the identifier is in the table then its token is returned  */
                                 return s->getToken();
                             }
                     }
 
-<<EOF>> { /* The interpreter finishes when finds the end of file character */
-            PLACE(24,10);
-            std::cout <<  BICYAN;
-            std::cout <<  ">>>>>>> End of program <<<<<<<";
-            std::cout << std::endl;
-            std::cout << RESET;
-            PLACE(25,1);
-            return 0;
-        }
-
-.                                {     
-                                    /* Any other character */
-                                    BEGIN(ERROR); 
-                                    yymore();  
+.                                {
+                                    currentLine += yytext;
+                                    columnNumber += yyleng;
+                                    BEGIN(ERROR);
+                                    yymore();
                                  }
 
-<ERROR>[^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&]    { yymore(); }
+<ERROR>([^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&])    { yymore(); }
+
 
 <ERROR>(.|\n)                { 
                                 /* Rewind one position */
-                                yyless(yyleng-1); 
+                                yyless(yyleng-1);
+
+                                currentLine = readLineFromFile(yyin, lineNumber);
 
                                 /* Display the error message */
-                                warning("Lexical error", yytext);
+                                lexicalWarning(fileName, lineNumber, columnNumber, yytext, currentLine, errorMsg);
 
                                 /* Restore the initial state */
-                                   BEGIN(INITIAL);
+                                BEGIN(INITIAL);
                              }
 %%
