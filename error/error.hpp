@@ -51,6 +51,12 @@ void semanticWarning(const std::string& filename,
              const std::string& errorMsg,
              const std::string& suggestion);
 
+void runtimeWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& errorMsg,
+             const std::string& suggestion);
+
 
 /*! 
 	\brief  Run time error recovery function

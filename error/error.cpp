@@ -84,6 +84,21 @@ void syntaxWarning(const std::string& filename,
   std::cerr << "      | " << std::endl;
 }
 
+void runtimeWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& errorMsg,
+             const std::string& suggestion)
+{
+  std::string sourceLine = sourceLines[line - 1];
+
+  std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Runtime error: " << RESET
+            << errorMsg << std::endl;
+
+  std::cerr << "    " << line << " | "  << sourceLine << std::endl;
+  std::cerr << "      | " << std::endl;
+}
+
 void yyerror(std::string errorMessage)
 {
     // Custom syntax error message

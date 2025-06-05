@@ -142,7 +142,7 @@ else
  if (interactiveMode == false)
  {
 
-       // root->printAST();  
+       root->printAST();  
        root->evaluate(); 
  }
 

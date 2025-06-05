@@ -313,15 +313,15 @@ int lp::NumericOperatorNode::getType()
 {
 	int result = 0;
 		
-	if ( (this->_left->getType() == NUMBER) and (this->_right->getType() == NUMBER))
+	if ( (this->_left->getType() == NUMBER) and (this->_right->getType() == NUMBER) )
 		result = NUMBER;
 	else
-		errorMsg = "Incompatible types for \"Numeric Operator\"";
-		
+    {
+		errorMsg = "Incompatible types for \"Numeric operator\"";
 		suggestion = "Check that both operands are numeric before using them in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
-
+    }
 	return	result;
 }
 
@@ -359,12 +359,12 @@ int lp::RelationalOperatorNode::getType()
 	else if ( (this->_left->getType() == BOOL) and (this->_right->getType() == BOOL))
 		result = BOOL;
 	else
+	{
 		errorMsg = "Incompatible types for \"Relational Operator\"";
-		
 		suggestion = "Check that both operands are of the same type before using them in a relational operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-				 suggestion);
-
+				suggestion);
+	}
 	return	result;
 }
 
@@ -384,7 +384,6 @@ int lp::LogicalOperatorNode:: getType()
 	else
 	{
 		errorMsg = "Incompatible types for \"Logical Operator\"";
-		
 		suggestion = "Check that both operands are boolean before using them in a logical operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -418,7 +417,6 @@ double lp::UnaryMinusNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expression is not numeric in UnaryMinusNode.";
-		
 		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -451,7 +449,6 @@ double lp::UnaryPlusNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expression is not numeric in UnaryPlusNode.";
-		
 		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -485,7 +482,6 @@ double lp::PlusNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expressions are not numeric in PlusNode.";
-		
 		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -519,7 +515,6 @@ double lp::MinusNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expressions are not numeric in MinusNode.";
-		
 		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -553,7 +548,6 @@ double lp::MultiplicationNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expressions are not numeric in MultiplicationNode.";
-		
 		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
@@ -596,7 +590,6 @@ double lp::DivisionNode::evaluateNumber()
 		else
 		{
 			errorMsg = "Division by zero in DivisionNode.";
-			
 			suggestion = "Check that the divisor is not zero before using it in a division operation.";
 			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 					 suggestion);
@@ -605,7 +598,6 @@ double lp::DivisionNode::evaluateNumber()
 	else
 	{
 		errorMsg = "Expressions are not numeric in DivisionNode.";
-		
 		suggestion = "Check that both expressions are assigned numeric values before using them in a numeric operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 				 suggestion);
