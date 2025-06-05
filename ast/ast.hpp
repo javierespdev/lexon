@@ -36,6 +36,7 @@ namespace lp
 		\sa		   printAST, evaluateNumber, evaluateBool
 	*/
     virtual int getType() = 0;
+    int _lineNumber; //!< Line number for error
 
 
 	/*!	
@@ -98,15 +99,17 @@ class VariableNode : public ExpNode
 
 	public:
 
-	/*!		
+	/*!   
 		\brief Constructor of VariableNode
 		\param value: double
+		\param lineNumber: int
 		\post  A new NumericVariableNode is created with the name of the parameter
 		\note  Inline function
 	*/
-	  VariableNode(std::string const & value)
+	  VariableNode(std::string const & value, int lineNumber)
 		{
 			this->_id = value; 
+			this->_lineNumber = lineNumber;
 		}
 
 	/*!	
@@ -163,11 +166,13 @@ class ConstantNode : public ExpNode
 	/*!		
 		\brief Constructor of ConstantNode
 		\param value: double
+		\param lineNumber: int
 		\post  A new ConstantNode is created with the name of the parameter
 	*/
-	  ConstantNode(std::string value)
+	  ConstantNode(std::string value, int lineNumber)
 		{
 			this->_id = value; 
+			this->_lineNumber = lineNumber;
 		}
 
 	/*!	
@@ -222,12 +227,14 @@ class NumberNode : public ExpNode
 /*!		
 	\brief Constructor of NumberNode
 	\param value: double
+	\param lineNumber: int
 	\post  A new NumberNode is created with the value of the parameter
 	\note  Inline function
 */
-  NumberNode(double value)
+  NumberNode(double value, int lineNumber)
 	{
 	    this->_number = value;
+	    this->_lineNumber = lineNumber;
 	}
 
 	/*!	
@@ -268,9 +275,10 @@ public:
         \post  A StringNode object is created holding the given string
         \note  Inline implementation
     */
-    StringNode(std::string value)
+    StringNode(std::string value, int lineNumber)
     {
         this->_string = value;
+        this->_lineNumber = lineNumber;
     }
 
     /*!
@@ -318,9 +326,10 @@ class UnaryOperatorNode : public ExpNode
 	\post  A new OperatorNode is created with the parameters
 	\note  Inline function
 */
-  UnaryOperatorNode(ExpNode *expression)
+  UnaryOperatorNode(ExpNode *expression, int lineNumber)
 	{
 		this->_exp = expression;
+		this->_lineNumber = lineNumber;
 	}
 
 	/*!	
@@ -354,7 +363,7 @@ class NumericUnaryOperatorNode : public UnaryOperatorNode
 	\post  A new NumericUnaryOperatorNode is created with the parameters
 	\note  Inline function
 */
-  NumericUnaryOperatorNode(ExpNode *expression): UnaryOperatorNode(expression)
+  NumericUnaryOperatorNode(ExpNode *expression, int lineNumber): UnaryOperatorNode(expression, lineNumber)
 	{
 		// Empty
 	}
@@ -388,7 +397,7 @@ class LogicalUnaryOperatorNode : public UnaryOperatorNode
 	\post  A new NumericUnaryOperatorNode is created with the parameters
 	\note  Inline function
 */
-  LogicalUnaryOperatorNode(ExpNode *expression): UnaryOperatorNode(expression)
+  LogicalUnaryOperatorNode(ExpNode *expression, int lineNumber): UnaryOperatorNode(expression, lineNumber)
 	{
 		// Empty
 	}
@@ -423,7 +432,7 @@ class UnaryMinusNode : public NumericUnaryOperatorNode
 	\post  A new UnaryMinusNode is created with the parameter
 	\note  Inline function: the NumericUnaryOperatorNode's constructor is used ad member initializer
 */
-  UnaryMinusNode(ExpNode *expression): NumericUnaryOperatorNode(expression) 
+  UnaryMinusNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -461,7 +470,7 @@ class UnaryPlusNode : public NumericUnaryOperatorNode
 	\param expression: pointer to ExpNode
 	\post  A new UnaryPlusNode is created with the parameter
 */
-  UnaryPlusNode(ExpNode *expression): NumericUnaryOperatorNode(expression) 
+  UnaryPlusNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -506,10 +515,11 @@ class OperatorNode : public ExpNode
 		\param R: pointer to ExpNode
 		\post  A new OperatorNode is created with the parameters
 	*/
-    OperatorNode(ExpNode *L, ExpNode *R)
+    OperatorNode(ExpNode *L, ExpNode *R, int lineNumber)
 	{
 	    this->_left  = L;
     	this->_right = R;
+        this->_lineNumber = lineNumber;
 	}
 
 };
@@ -535,9 +545,9 @@ class NumericOperatorNode : public OperatorNode
 		\param R: pointer to ExpNode
 		\post  A new NumericOperatorNode is created with the parameters
 	*/
-    NumericOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    NumericOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
-		//	Empty
+		// Empty
 	}
 
 	/*!	
@@ -567,7 +577,7 @@ class StringOperatorNode : public OperatorNode
 		\param R: pointer to ExpNode
 		\post  A new StringOperatorNode is created with the parameters
 	*/
-	StringOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L, R) 
+	StringOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L, R, lineNumber) 
 	{
 		// Empty
 	}
@@ -597,7 +607,7 @@ public:
 	\param R: pointer to ExpNode
 	\post  A new RelationalOperatorNode is created with the parameters
 */
-    RelationalOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    RelationalOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
 		//	Empty
 	}
@@ -630,7 +640,7 @@ class LogicalOperatorNode : public OperatorNode
 		\param R: pointer to ExpNode
 		\post  A new NumericOperatorNode is created with the parameters
 	*/
-    LogicalOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    LogicalOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
 		//	Empty
 	}
@@ -662,7 +672,7 @@ class PlusNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new PlusNode is created with the parameter
 */
-  PlusNode(ExpNode *L, ExpNode *R) : NumericOperatorNode(L,R) 
+  PlusNode(ExpNode *L, ExpNode *R, int lineNumber) : NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -702,7 +712,7 @@ class MinusNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new MinusNode is created with the parameter
 */
-  MinusNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  MinusNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -743,7 +753,7 @@ class MultiplicationNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new MultiplicationNode is created with the parameter
 */
-  MultiplicationNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  MultiplicationNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -780,7 +790,7 @@ class DivisionNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new DivisionNode is created with the parameter
 */
-  DivisionNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  DivisionNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -817,7 +827,7 @@ class IntegerDivisionNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new IntegerDivisionNode is created with the parameter
 */
-  IntegerDivisionNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  IntegerDivisionNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -855,7 +865,7 @@ class ConcatenationNode : public StringOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new IntegerDivisionNode is created with the parameter
 */
-  ConcatenationNode(ExpNode *L, ExpNode *R): StringOperatorNode(L,R) 
+  ConcatenationNode(ExpNode *L, ExpNode *R, int lineNumber): StringOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -893,7 +903,7 @@ class ModuloNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new ModuloNode is created with the parameter
 */
-  ModuloNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  ModuloNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -931,7 +941,7 @@ class PowerNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new PowerNode is created with the parameter
 */
-  PowerNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  PowerNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -971,9 +981,10 @@ class BuiltinFunctionNode : public ExpNode
 	\param id: string, name of the BuiltinFunction
 	\post  A new BuiltinFunctionNode is created with the parameter
 */
-  BuiltinFunctionNode(std::string id)
+  BuiltinFunctionNode(std::string id, int lineNumber)
 	{
 		this->_id = id;
+		this->_lineNumber = lineNumber;
 	}
 
 };
@@ -999,7 +1010,7 @@ class BuiltinFunctionNode_0 : public BuiltinFunctionNode
 	\param id: string, name of the BuiltinFunction
 	\post  A new BuiltinFunctionNode_2 is created with the parameter
 */
-  BuiltinFunctionNode_0(std::string id): BuiltinFunctionNode(id)
+  BuiltinFunctionNode_0(std::string id, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		// 
 	}
@@ -1052,7 +1063,7 @@ class BuiltinFunctionNode_1: public BuiltinFunctionNode
 	\param expression: pointer to ExpNode, argument of the BuiltinFunctionNode_1
 	\post  A new BuiltinFunctionNode_1 is created with the parameters
 */
-  BuiltinFunctionNode_1(std::string id, ExpNode *expression): BuiltinFunctionNode(id)
+  BuiltinFunctionNode_1(std::string id, ExpNode *expression, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		this->_exp = expression;
 	}
@@ -1105,7 +1116,7 @@ class BuiltinFunctionNode_2 : public BuiltinFunctionNode
 		\param expression2: pointer to ExpNode, second argument of the BuiltinFunctionNode
 		\post  A new BuiltinFunctionNode_2 is created with the parameters
 	*/
-	  BuiltinFunctionNode_2(std::string id,ExpNode *expression1,ExpNode *expression2): BuiltinFunctionNode(id)
+	  BuiltinFunctionNode_2(std::string id,ExpNode *expression1,ExpNode *expression2, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		this->_exp1 = expression1;
 		this->_exp2 = expression2;
@@ -1156,7 +1167,7 @@ class GreaterThanNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new GreaterThanNode is created with the parameter
 */
-  GreaterThanNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  GreaterThanNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1199,7 +1210,7 @@ class GreaterOrEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new GreaterOrEqualNode is created with the parameter
 */
-  GreaterOrEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  GreaterOrEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1240,7 +1251,7 @@ class LessThanNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new LessThanNode is created with the parameter
 */
-  LessThanNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  LessThanNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1281,7 +1292,7 @@ class LessOrEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new LessOrEqualNode is created with the parameter
 */
-  LessOrEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  LessOrEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1322,7 +1333,7 @@ class EqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new EqualNode is created with the parameter
 */
-  EqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  EqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1363,7 +1374,7 @@ class NotEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new NotEqualNode is created with the parameter
 */
-  NotEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  NotEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1405,7 +1416,7 @@ class AndNode : public LogicalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new AndNode is created with the parameter
 */
-  AndNode(ExpNode *L, ExpNode *R): LogicalOperatorNode(L,R) 
+  AndNode(ExpNode *L, ExpNode *R, int lineNumber): LogicalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1448,7 +1459,7 @@ class OrNode : public LogicalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new AndNode is created with the parameter
 */
-  OrNode(ExpNode *L, ExpNode *R): LogicalOperatorNode(L,R) 
+  OrNode(ExpNode *L, ExpNode *R, int lineNumber): LogicalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1488,7 +1499,7 @@ class NotNode : public LogicalUnaryOperatorNode
 	\param expression: pointer to ExpNode
 	\post  A new NotNode is created with the parameter
 */
-  NotNode(ExpNode *expression): LogicalUnaryOperatorNode(expression) 
+  NotNode(ExpNode *expression, int lineNumber): LogicalUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -1520,6 +1531,7 @@ class NotNode : public LogicalUnaryOperatorNode
 
 class Statement {
  public:
+    int _lineNumber; //!< Line number for error
 
 /*!	
 	\brief   Print the AST for Statement
@@ -1566,9 +1578,10 @@ class AssignmentStmt : public Statement
 	\param expression: pointer to ExpNode
 	\post  A new AssignmentStmt is created with the parameters
 */
-  AssignmentStmt(std::string id, ExpNode *expression): _id(id), _exp(expression)
+  AssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
 	{
 		this->_asgn = NULL; 
+		this->_lineNumber = lineNumber;
 	}
 
 /*!		
@@ -1579,9 +1592,10 @@ class AssignmentStmt : public Statement
 	\note  Allow multiple assigment -> a = b = 2 
 */
 
-  AssignmentStmt(std::string id, AssignmentStmt *asgn): _id(id), _asgn(asgn)
+  AssignmentStmt(std::string id, AssignmentStmt *asgn, int lineNumber): _id(id), _asgn(asgn)
 	{
 		this->_exp = NULL;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1622,9 +1636,10 @@ class PrintStmt: public Statement
 	\param expression: pointer to ExpNode
 	\post  A new PrintStmt is created with the parameter
 */
-  PrintStmt(ExpNode *expression)
+  PrintStmt(ExpNode *expression, int lineNumber)
 	{
 		this->_exp = expression;
+		this->_lineNumber = lineNumber;
 	}
 
 /*!
@@ -1665,9 +1680,10 @@ class ReadStmt : public Statement
 	\param id: string, name of the variable of the ReadStmt
 	\post  A new ReadStmt is created with the parameter
 */
-  ReadStmt(std::string id)
+  ReadStmt(std::string id, int lineNumber)
 	{
 		this->_id = id;
+		this->_lineNumber = lineNumber;
 	}
 
 /*!
@@ -1708,9 +1724,10 @@ class ReadStringStmt : public Statement
 	\param id: string, name of the variable of the ReadStringStmt
 	\post  A new ReadStringStmt is created with the parameter
 */
-  ReadStringStmt(std::string id)
+  ReadStringStmt(std::string id, int lineNumber)
 	{
 		this->_id = id;
+		this->_lineNumber = lineNumber;
 	}
 
 /*!
@@ -1748,9 +1765,10 @@ class EmptyStmt : public Statement
 	\brief Constructor of  WhileStmt
 	\post  A new EmptyStmt is created 
 */
-  EmptyStmt()
+  EmptyStmt(int lineNumber)
 	{
 		// Empty
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1794,11 +1812,12 @@ class IfStmt : public Statement
 	\param statement1: Statement of the consequent
 	\post  A new IfStmt is created with the parameters
 */
-  IfStmt(ExpNode *condition, std::list<Statement *> *statement1)
+  IfStmt(ExpNode *condition, std::list<Statement *> *statement1, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt1 = statement1;
         this->_stmt2 = NULL;
+        this->_lineNumber = lineNumber;
 	}
 
 
@@ -1809,11 +1828,12 @@ class IfStmt : public Statement
 	\param statement2: Statement of the alternative
 	\post  A new IfStmt is created with the parameters
 */
-  IfStmt(ExpNode *condition, std::list<Statement *> *statement1, std::list<Statement *> *statement2)
+  IfStmt(ExpNode *condition, std::list<Statement *> *statement1, std::list<Statement *> *statement2, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt1 = statement1;
 		this->_stmt2 = statement2;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1854,10 +1874,11 @@ class WhileStmt : public Statement
 	\param statement: Statement of the body of the loop 
 	\post  A new WhileStmt is created with the parameters
 */
-  WhileStmt(ExpNode *condition, std::list<Statement *> *statement)
+  WhileStmt(ExpNode *condition, std::list<Statement *> *statement, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1899,10 +1920,11 @@ class RepeatStmt : public Statement
 	\param statement: Statement of the body of the loop 
 	\post  A new RepeatStmt is created with the parameters
 */
-  RepeatStmt(std::list<Statement *> *statement, ExpNode *condition)
+  RepeatStmt(std::list<Statement *> *statement, ExpNode *condition, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1949,13 +1971,14 @@ class ForStmt : public Statement
     \param stmt: List of statements inside the loop body
     \post  A new ForStmt is created with the provided parameters
 */
-  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, std::list<Statement *> *stmt)
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, std::list<Statement *> *stmt, int lineNumber)
   {
     this->_id = id;
     this->_from = from;
     this->_to = to;
     this->_stmt = stmt;
     this->_step = NULL;
+    this->_lineNumber = lineNumber;
   }
 
   
@@ -1968,7 +1991,7 @@ class ForStmt : public Statement
     \param stmt: List of statements inside the loop body
     \post  A new ForStmt is created with the provided parameters
 */
-  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, ExpNode *step, std::list<Statement *> *stmt)
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, ExpNode *step, std::list<Statement *> *stmt, int lineNumber)
   {
     this->_id = id;
     this->_from = from;
@@ -2014,7 +2037,7 @@ class BlockStmt : public Statement
 	\param stmtList: list of Statement
 	\post  A new BlockStmt is created with the parameters
 */
-  BlockStmt(std::list<Statement *> *stmtList): _stmts(stmtList)
+  BlockStmt(std::list<Statement *> *stmtList, int lineNumber): _stmts(stmtList)
 	{
 		// Empty
 	}

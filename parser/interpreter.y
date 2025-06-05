@@ -45,6 +45,8 @@ int yylex();
 
 extern int lineNumber; //!< External line counter
 
+extern int yylineno;
+
 extern bool interactiveMode; //!< Control the interactive mode of execution of the interpreter
 
 extern int control; //!< External: to control the interactive mode in "if" and "while" sentences 
@@ -80,6 +82,8 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
   lp::Statement *st;
   lp::AST *prog;
 }
+
+%locations
 
 /* Type of the non-terminal symbols */
 %type <expNode> exp cond
@@ -198,65 +202,86 @@ stmtlist:  /* empty: epsilon rule */
 
 stmt: SEMICOLON  /* Empty statement: ";" */
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Create a new empty statement node
-        $$ = new lp::EmptyStmt(); 
+        $$ = new lp::EmptyStmt(lineNumber); 
       }
     | asgn  SEMICOLON
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     | print SEMICOLON
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     | read SEMICOLON
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     
     | if 
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     
     | while 
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
 
     | repeat 
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
 
     | for 
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     
     | block 
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Default action
         // $$ = $1;
       }
     | CLEAR_SCREEN
       {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         $$ = new lp::ClearScreenStmt();
       }
 ;
 
-
 block: LETFCURLYBRACKET stmtlist RIGHTCURLYBRACKET  
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new block of statements node
-            $$ = new lp::BlockStmt($2); 
+            $$ = new lp::BlockStmt($2, lineNumber); 
         }
 ;
 
@@ -270,8 +295,10 @@ controlSymbol:  /* Epsilon rule*/
 if:
     IF controlSymbol cond THEN stmtlist END_IF
     {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Create a new if statement node
-        $$ = new lp::IfStmt($3, $5);
+        $$ = new lp::IfStmt($3, $5, lineNumber);
 
         // To control the interactive mode
         control--;
@@ -279,8 +306,10 @@ if:
     
   | IF controlSymbol cond THEN stmtlist ELSE stmtlist END_IF
     {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
         // Create a new if-else statement node
-        $$ = new lp::IfStmt($3, $5, $7);
+        $$ = new lp::IfStmt($3, $5, $7, lineNumber);
 
         // To control the interactive mode
         control--;
@@ -289,8 +318,10 @@ if:
 
 while:  WHILE controlSymbol cond DO stmtlist END_WHILE
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new while statement node
-            $$ = new lp::WhileStmt($3, $5);
+            $$ = new lp::WhileStmt($3, $5, lineNumber);
 
             // To control the interactive mode
             control--;
@@ -299,8 +330,10 @@ while:  WHILE controlSymbol cond DO stmtlist END_WHILE
 
 repeat:  REPEAT controlSymbol stmtlist UNTIL cond
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new repeat statement node
-            $$ = new lp::RepeatStmt($3, $5);
+            $$ = new lp::RepeatStmt($3, $5, lineNumber);
 
             // To control the interactive mode
             control--;
@@ -309,16 +342,20 @@ repeat:  REPEAT controlSymbol stmtlist UNTIL cond
 
 for:  FOR VARIABLE FROM exp TO exp DO controlSymbol stmtlist END_FOR
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new for statement node
-            $$ = new lp::ForStmt(std::string($2), $4, $6, $9);
+            $$ = new lp::ForStmt(std::string($2), $4, $6, $9, lineNumber);
 
             // To control the interactive mode
             control--;
         }
     | FOR VARIABLE FROM exp TO exp STEP exp DO controlSymbol stmtlist END_FOR
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new for with step statement node
-            $$ = new lp::ForStmt(std::string($2), $4, $6, $8, $11);
+            $$ = new lp::ForStmt(std::string($2), $4, $6, $8, $11, lineNumber);
 
             // To control the interactive mode
             control--;
@@ -333,14 +370,18 @@ cond:   LPAREN exp RPAREN
 
 asgn:   VARIABLE ASSIGNMENT exp 
         { 
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new assignment node
-            $$ = new lp::AssignmentStmt($1, $3);
+            $$ = new lp::AssignmentStmt($1, $3, lineNumber);
         }
 
     |  VARIABLE ASSIGNMENT asgn 
         { 
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new assignment node
-            $$ = new lp::AssignmentStmt($1, (lp::AssignmentStmt *) $3);
+            $$ = new lp::AssignmentStmt($1, (lp::AssignmentStmt *) $3, lineNumber);
         }
 
     | CONSTANT ASSIGNMENT exp 
@@ -354,23 +395,29 @@ asgn:   VARIABLE ASSIGNMENT exp
         }
 ;
 
-print:  PRINT exp 
+print:  PRINT exp
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new print node
-             $$ = new lp::PrintStmt($2);
+             $$ = new lp::PrintStmt($2, lineNumber);
         }
 ;    
 
 read:   READ LPAREN VARIABLE RPAREN  
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new read node
-             $$ = new lp::ReadStmt($3);
+             $$ = new lp::ReadStmt($3, lineNumber);
         }
 
       | READ_STRING LPAREN VARIABLE RPAREN  
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new read node
-             $$ = new lp::ReadStmt($3);
+             $$ = new lp::ReadStringStmt($3, lineNumber);
         }
 
       | READ LPAREN CONSTANT RPAREN  
@@ -382,96 +429,128 @@ read:   READ LPAREN VARIABLE RPAREN
 
 exp:    NUMBER 
         { 
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new number node
-            $$ = new lp::NumberNode($1);
+            $$ = new lp::NumberNode($1, lineNumber);
         }
     |   STRING
         { 
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Create a new string node
-             $$ = new lp::StringNode($1);
+             $$ = new lp::StringNode($1, lineNumber);
         }
 
     |     exp PLUS exp 
         { 
+            // Update lineNumber for error control
+            lineNumber = @2.first_line;
             // Create a new plus node
-             $$ = new lp::PlusNode($1, $3);
+             $$ = new lp::PlusNode($1, $3, lineNumber);
         }
 
     |     exp MINUS exp
         {
+            // Update lineNumber for error control
+            lineNumber = @2.first_line;
             // Create a new minus node
-            $$ = new lp::MinusNode($1, $3);
+            $$ = new lp::MinusNode($1, $3, lineNumber);
         }
 
     |     exp MULTIPLICATION exp 
         { 
+            // Update lineNumber for error control
+            lineNumber = @2.first_line;
             // Create a new multiplication node
-            $$ = new lp::MultiplicationNode($1, $3);
+            $$ = new lp::MultiplicationNode($1, $3, lineNumber);
         }
 
     |     exp DIVISION exp
         {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new division node    
-          $$ = new lp::DivisionNode($1, $3);
+          $$ = new lp::DivisionNode($1, $3, lineNumber);
         }
     |     exp INTEGER_DIVISION exp
         {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new integer division node    
-          $$ = new lp::IntegerDivisionNode($1, $3);
+          $$ = new lp::IntegerDivisionNode($1, $3, lineNumber);
         }
 
     |     exp CONCATENATION exp
         {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new concatenation division node    
-          $$ = new lp::ConcatenationNode($1, $3);
+          $$ = new lp::ConcatenationNode($1, $3, lineNumber);
         }
 
     |     LPAREN exp RPAREN
         { 
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // just copy up the expression node 
             $$ = $2;
         }
 
     |     PLUS exp %prec UNARY
         { 
+          // Update lineNumber for error control
+          lineNumber = @1.first_line;
           // Create a new unary plus node    
-            $$ = new lp::UnaryPlusNode($2);
+            $$ = new lp::UnaryPlusNode($2, lineNumber);
         }
 
     |     MINUS exp %prec UNARY
         { 
+          // Update lineNumber for error control
+          lineNumber = @1.first_line;
           // Create a new unary minus node    
-            $$ = new lp::UnaryMinusNode($2);
+            $$ = new lp::UnaryMinusNode($2, lineNumber);
         }
 
     |    exp MODULO exp 
         {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new modulo node    
 
-          $$ = new lp::ModuloNode($1, $3);
+          $$ = new lp::ModuloNode($1, $3, lineNumber);
         }
 
     |    exp POWER exp 
         { 
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new power node    
-            $$ = new lp::PowerNode($1, $3);
+            $$ = new lp::PowerNode($1, $3, lineNumber);
         }
 
     |    VARIABLE
         {
+          // Update lineNumber for error control
+          lineNumber = @1.first_line;
           // Create a new variable node    
-          $$ = new lp::VariableNode($1);
+          $$ = new lp::VariableNode($1, lineNumber);
         }
 
     |    CONSTANT
         {
+          // Update lineNumber for error control
+          lineNumber = @1.first_line;
           // Create a new constant node    
-          $$ = new lp::ConstantNode($1);
+          $$ = new lp::ConstantNode($1, lineNumber);
 
         }
 
     |    BUILTIN LPAREN listOfExp RPAREN
         {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
             // Get the identifier in the table of symbols as Builtin
             lp::Builtin *f= (lp::Builtin *) table.getSymbol($1);
 
@@ -483,7 +562,7 @@ exp:    NUMBER
                     case 0:
                         {
                             // Create a new Builtin Function with 0 parameters node    
-                            $$ = new lp::BuiltinFunctionNode_0($1);
+                            $$ = new lp::BuiltinFunctionNode_0($1, lineNumber);
                         }
                         break;
 
@@ -493,7 +572,7 @@ exp:    NUMBER
                             lp::ExpNode *e = $3->front();
 
                             // Create a new Builtin Function with 1 parameter node    
-                            $$ = new lp::BuiltinFunctionNode_1($1,e);
+                            $$ = new lp::BuiltinFunctionNode_1($1,e, lineNumber);
                         }
                         break;
 
@@ -505,7 +584,7 @@ exp:    NUMBER
                             lp::ExpNode *e2 = $3->front();
 
                             // Create a new Builtin Function with 2 parameters node    
-                            $$ = new lp::BuiltinFunctionNode_2($1,e1,e2);
+                            $$ = new lp::BuiltinFunctionNode_2($1,e1,e2, lineNumber);
                         }
                         break;
 
@@ -518,56 +597,74 @@ exp:    NUMBER
         }
     |    exp GREATER_THAN exp
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "greater than" node    
-             $$ = new lp::GreaterThanNode($1,$3);
+             $$ = new lp::GreaterThanNode($1,$3, lineNumber);
          }
 
     |    exp GREATER_OR_EQUAL exp 
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "greater or equal" node    
-             $$ = new lp::GreaterOrEqualNode($1,$3);
+             $$ = new lp::GreaterOrEqualNode($1,$3, lineNumber);
          }
 
     |    exp LESS_THAN exp     
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "less than" node    
-             $$ = new lp::LessThanNode($1,$3);
+             $$ = new lp::LessThanNode($1,$3, lineNumber);
          }
 
     |    exp LESS_OR_EQUAL exp 
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "less or equal" node    
-             $$ = new lp::LessOrEqualNode($1,$3);
+             $$ = new lp::LessOrEqualNode($1,$3, lineNumber);
          }
 
     |    exp EQUAL exp     
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "equal" node    
-             $$ = new lp::EqualNode($1,$3);
+             $$ = new lp::EqualNode($1,$3, lineNumber);
          }
 
     |    exp NOT_EQUAL exp     
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "not equal" node    
-             $$ = new lp::NotEqualNode($1,$3);
+             $$ = new lp::NotEqualNode($1,$3, lineNumber);
          }
 
     |    exp AND exp 
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "logic and" node    
-             $$ = new lp::AndNode($1,$3);
+             $$ = new lp::AndNode($1,$3, lineNumber);
          }
 
     |    exp OR exp 
          {
+          // Update lineNumber for error control
+          lineNumber = @2.first_line;
           // Create a new "logic or" node    
-             $$ = new lp::OrNode($1,$3);
+             $$ = new lp::OrNode($1,$3, lineNumber);
          }
 
     |    NOT exp 
          {
+          // Update lineNumber for error control
+          lineNumber = @1.first_line;
           // Create a new "logic negation" node    
-             $$ = new lp::NotNode($2);
+             $$ = new lp::NotNode($2, lineNumber);
          }
 ;
 

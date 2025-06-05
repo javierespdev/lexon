@@ -73,6 +73,7 @@ lp::Table table; //!< Table of Symbols
 
 // cout.precision
 #include <iostream>
+#include <fstream>
 //////////////////////////////////////////////////
 
 //! \name Main program
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 {
 	/* Option -t needed to debug */
     /* 1, on; 0, off */
-	yydebug = 0; 
+	yydebug = 0;
  
  /* 
    If the input file exists 
@@ -104,6 +105,13 @@ int main(int argc, char *argv[])
      yyin = fopen(argv[1],"r");
      fileName = argv[1];
 	 interactiveMode = false;
+
+     std::ifstream file(argv[1]);
+     std::string line;
+     while (std::getline(file, line)) {
+        sourceLines.push_back(line);
+     }
+     file.close();
  }
 else
  {

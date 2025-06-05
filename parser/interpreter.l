@@ -2,6 +2,7 @@
   \file interpreter.l
   \brief Lexical or scanner file
 */
+%option yylineno 
 %{
 
 /* Standard libraries */
@@ -24,6 +25,35 @@ extern lp::Table table;        /* Symbol table */
 
 #include <cstdio>
 #include <string>
+
+%}
+
+%option yylineno
+
+%{
+
+/* Standard libraries */
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+
+/* Project headers */
+#include "../includes/macros.hpp"
+#include "../ast/ast.hpp"
+#include "interpreter.tab.h"
+#include "../error/error.hpp"
+#include "../table/table.hpp"
+#include "../table/numericVariable.hpp"
+#include "../includes/globals.hpp"
+
+/* External variables */
+extern lp::Table table;        /* Symbol table */
+
+#include <cstdio>
+#include <string>
+
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 
 %}
 
@@ -333,10 +363,8 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                                 /* Rewind one position */
                                 yyless(yyleng-1);
 
-                                currentLine = readLineFromFile(yyin, lineNumber);
-
                                 /* Display the error message */
-                                lexicalWarning(fileName, lineNumber, columnNumber, yytext, currentLine, errorMsg);
+                                lexicalWarning(fileName, lineNumber, columnNumber, yytext, errorMsg);
 
                                 /* Restore the initial state */
                                 BEGIN(INITIAL);

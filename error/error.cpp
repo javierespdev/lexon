@@ -20,6 +20,8 @@
 // Macros for the screen
 #include "../includes/macros.hpp"
 
+#include "../includes/globals.hpp"
+
 extern int lineNumber; //!< // Reference to line counter
 
 extern std::string progname; //!<  Reference to program name
@@ -32,9 +34,10 @@ void lexicalWarning(const std::string& filename,
              int line,
              int column,
              const std::string& token,
-             const std::string& sourceLine,
              const std::string& errorMsg)
 {
+  std::string sourceLine = sourceLines[line - 1];
+
   std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Lexical error: " << RESET
             << "'" << token << "'" << std::endl;
 
@@ -50,14 +53,15 @@ void lexicalWarning(const std::string& filename,
   std::cerr << BIYELLOW << "    Hint: " << RESET << errorMsg << std::endl;
 }
 
-void parserWarning(const std::string& filename,
+void semanticWarning(const std::string& filename,
              int line,
              int column,
              const std::string& errorMsg,
-             const std::string& sourceLine,
              const std::string& suggestion)
 {
-  std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Parser error: " << RESET
+  std::string sourceLine = sourceLines[line - 1];
+
+  std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Semantic error: " << RESET
             << errorMsg << std::endl;
 
   std::cerr << "    " << line << " | "  << sourceLine << std::endl;
@@ -65,15 +69,38 @@ void parserWarning(const std::string& filename,
   std::cerr << BIYELLOW << "    Suggestion: " << RESET << suggestion << std::endl;
 }
 
+
+void syntaxWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& errorMsg)
+{
+  std::string sourceLine = sourceLines[line - 1];
+
+  std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Syntax error: " << RESET
+            << errorMsg << std::endl;
+
+  std::cerr << "    " << line << " | "  << sourceLine << std::endl;
+  std::cerr << "      | " << std::endl;
+}
+
 void yyerror(std::string errorMessage)
 {
-	// warning("Parser error",errorMessage);
+    // Custom syntax error message
+    std::string toRemove = "syntax error, ";
+    size_t pos = errorMessage.find(toRemove);
+
+    if (pos != std::string::npos) {
+        errorMessage.erase(pos, toRemove.length());
+    }
+
+    syntaxWarning(fileName, lineNumber, columnNumber, errorMessage);
 }
 
 
 void execerror(std::string errorMessage1,std::string errorMessage2)
 {
- // warning(errorMessage1,errorMessage2); 
+ // syntaxWarning(errorMessage1,errorMessage2); 
 
  longjmp(begin,0); /* return to a viable state */
 }
