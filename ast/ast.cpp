@@ -2,164 +2,173 @@
 	\file    ast.cpp
 	\brief   Code of funcitons of AST clas
 	\author  
-	\date    2018-12-13
+	\date    2025-06-06
 	\version 1.0
 */
 
+// Standard C++ libraries
 #include <iostream>
-#include <stdlib.h>
 #include <string>
 #include <list>
 #include <sstream>
 #include <cstdlib>
 #include <ctime>
-// Para usar la funciones pow y std::abs
 #include <cmath>
 
+// Project core AST definitions
 #include "ast.hpp"
 
+// Symbol table and variable/constant types
 #include "../table/table.hpp"
-
-// warning
-#include "../error/error.hpp"
-#include "../includes/globals.hpp"
-
-// Macros for the screen
-#include "../includes/macros.hpp"
-
-// 
 #include "../table/numericVariable.hpp"
 #include "../table/stringVariable.hpp"
 #include "../table/logicalVariable.hpp"
-
 #include "../table/numericConstant.hpp"
 #include "../table/logicalConstant.hpp"
 
+// Built-in function interfaces
 #include "../table/builtinParameter0.hpp"
 #include "../table/builtinParameter1.hpp"
 #include "../table/builtinParameter2.hpp"
 
-#include "../parser/interpreter.tab.h"
+// Error handling and global utilities
+#include "../error/error.hpp"
+#include "../includes/globals.hpp"
+#include "../includes/macros.hpp"
 
+// Bison-generated parser interface
+#include "../parser/interpreter.tab.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 extern lp::Table table; //!< Reference to the Table of Symbols
-
-
 extern lp::AST *root; //!< Reference to the object at the base of the AST
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief Returns the type of the variable node.
+ * @return The type of the variable (NUMBER, STRING, BOOL, etc.).
+ */
 int lp::VariableNode::getType() 
-{ 
-	// Get the identifier in the table of symbols as Variable
-	lp::Variable *var = (lp::Variable *) table.getSymbol(this->_id);
+{
+    // Get the identifier in the table of symbols as Variable
+    lp::Variable *var = (lp::Variable *) table.getSymbol(this->_id);
 
-	// Return the type of the Variable
-	return var->getType();
+    // Return the type of the Variable
+    return var->getType();
 }
 
-
+/**
+ * @brief Prints the AST representation of a VariableNode.
+ */
 void lp::VariableNode::printAST() 
 {
-  std::cout << "VariableNode: " << this->_id;
-  std::cout << " (Type: " << this->getType() << ")" << std::endl;
+    std::cout << "VariableNode: " << this->_id;
+    std::cout << " (Type: " << this->getType() << ")" << std::endl;
 }
 
-
+/**
+ * @brief Evaluates and returns the numeric value of the variable node.
+ * @return The numeric value if the variable is numeric, otherwise triggers a semantic warning and returns 0.0.
+ */
 double lp::VariableNode::evaluateNumber() 
-{ 
-	double result = 0.0;
+{
+    double result = 0.0;
 
-	if (this->getType() == NUMBER)
-	{
-		// Get the identifier in the table of symbols as NumericVariable
-		lp::NumericVariable *var = (lp::NumericVariable *) table.getSymbol(this->_id);
+    if (this->getType() == NUMBER)
+    {
+        // Get the identifier in the table of symbols as NumericVariable
+        lp::NumericVariable *var = (lp::NumericVariable *) table.getSymbol(this->_id);
 
-		// Copy the value of the NumericVariable
-		result = var->getValue();
-	}
-	else
-	{	
+        // Copy the value of the NumericVariable
+        result = var->getValue();
+    }
+    else
+    {
         errorMsg = "Variable is not numeric.";
         suggestion = "Check that the variable is assigned a numeric value before using it in a numeric expression.";
-        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-                 suggestion);
-	}
+        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+    }
 
-	// Return the value of the NumericVariable
-	return result;
+    // Return the value of the NumericVariable
+    return result;
 }
 
-
+/**
+ * @brief Evaluates and returns the boolean value of the variable node.
+ * @return The boolean value if the variable is boolean, otherwise triggers a semantic warning and returns false.
+ */
 bool lp::VariableNode::evaluateBool() 
-{ 
-	bool result = false;
+{
+    bool result = false;
 
-	if (this->getType() == BOOL)
-	{
-		// Get the identifier in the table of symbols as LogicalVariable
-		lp::LogicalVariable *var = (lp::LogicalVariable *) table.getSymbol(this->_id);
+    if (this->getType() == BOOL)
+    {
+        // Get the identifier in the table of symbols as LogicalVariable
+        lp::LogicalVariable *var = (lp::LogicalVariable *) table.getSymbol(this->_id);
 
-		// Copy the value of the LogicalVariable
-		result = var->getValue();
-	}
-	else
-	{
+        // Copy the value of the LogicalVariable
+        result = var->getValue();
+    }
+    else
+    {
         errorMsg = "Variable is not bool.";
-        
         suggestion = "Check that the variable is assigned a bool value before using it in a bool expression.";
-        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-                 suggestion);
-	}
+        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+    }
 
-	// Return the value of the LogicalVariable
-	return result;
+    // Return the value of the LogicalVariable
+    return result;
 }
 
-
+/**
+ * @brief Evaluates and returns the string value of the variable node.
+ * @return The string value if the variable is a string, otherwise triggers a semantic warning and returns an empty string.
+ */
 std::string lp::VariableNode::evaluateString() 
-{ 
-	std::string result;
+{
+    std::string result;
 
-	if (this->getType() == STRING)
-	{
-		// Get the identifier in the table of symbols as StringVariable
-		lp::StringVariable *var = (lp::StringVariable *) table.getSymbol(this->_id);
+    if (this->getType() == STRING)
+    {
+        // Get the identifier in the table of symbols as StringVariable
+        lp::StringVariable *var = (lp::StringVariable *) table.getSymbol(this->_id);
 
-		// Copy the value of the StringVariable
-		result = var->getValue();
-	}
-	else
-	{
+        // Copy the value of the StringVariable
+        result = var->getValue();
+    }
+    else
+    {
         errorMsg = "Variable is not string.";
-        
         suggestion = "Check that the variable is assigned a string value before using it in a string expression.";
-        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-                 suggestion);
-	}
+        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+    }
 
-	// Return the value of the StringVariable
-	return result;
+    // Return the value of the StringVariable
+    return result;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ConstantNode.
+ */
 void lp::ConstantNode::printAST() 
 {
   std::cout << "ConstantNode: " << this->_id;
   std::cout << " (Type: " << this->getType() << ")" << std::endl;
 }
 
+/**
+ * @brief Returns the type of the constant node.
+ * @return The type of the constant (NUMBER, STRING, BOOL, etc.).
+ */
 int lp::ConstantNode::getType() 
 { 
 	// Get the identifier in the table of symbols as Constant
@@ -170,6 +179,10 @@ int lp::ConstantNode::getType()
 }
 
 
+/**
+ * @brief Evaluates and returns the numeric value of the constant node.
+ * @return The numeric value.
+ */
 double lp::ConstantNode::evaluateNumber() 
 { 
 	double result = 0.0;
@@ -195,6 +208,10 @@ double lp::ConstantNode::evaluateNumber()
 	return result;
 }
 
+/**
+ * @brief Evaluates and returns the boolean value of the constant node.
+ * @return The boolean value.
+ */
 bool lp::ConstantNode::evaluateBool() 
 { 
 	bool result = false;
@@ -224,18 +241,28 @@ bool lp::ConstantNode::evaluateBool()
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
  
-
+/**
+ * @brief Returns the type of the number node.
+ * @return NUMBER type.
+ */
 int lp::NumberNode::getType()
 {
 	return NUMBER;
 }
 
 
+/**
+ * @brief Prints the AST representation of a NumberNode.
+ */
 void lp::NumberNode::printAST()
 {
   std::cout << "NumberNode: " << this->_number << std::endl;
 }
 
+/**
+ * @brief Evaluates and returns the numeric value of the number node.
+ * @return The numeric value.
+ */
 double lp::NumberNode::evaluateNumber() 
 { 
     return this->_number; 
@@ -244,17 +271,27 @@ double lp::NumberNode::evaluateNumber()
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
  
-
+/**
+ * @brief Returns the type of the string node.
+ * @return STRING type.
+ */
 int lp::StringNode::getType()
 {
 	return STRING;
 }
 
+/**
+ * @brief Prints the AST representation of a StringNode.
+ */
 void lp::StringNode::printAST()
 {
     std::cout << "StringNode: " << this->_string << std::endl;
 }
 
+/**
+ * @brief Evaluates and returns the string value of the string node.
+ * @return The string value.
+ */
 std::string lp::StringNode::evaluateString()
 {
     return this->_string;
@@ -262,6 +299,10 @@ std::string lp::StringNode::evaluateString()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Returns the type of the numeric unary operator node.
+ * @return The type of the result (NUMBER).
+ */
 int lp::NumericUnaryOperatorNode::getType()
 {
 	int result;
@@ -286,6 +327,10 @@ int lp::NumericUnaryOperatorNode::getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the logical unary operator node.
+ * @return The type of the result (BOOL).
+ */
 int lp::LogicalUnaryOperatorNode::getType()
 {
 	int result;
@@ -310,6 +355,10 @@ int lp::LogicalUnaryOperatorNode::getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the numeric operator node.
+ * @return The type of the result (NUMBER).
+ */
 int lp::NumericOperatorNode::getType()
 {
 	int result = 0;
@@ -330,6 +379,10 @@ int lp::NumericOperatorNode::getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the string operator node.
+ * @return The type of the result (STRING).
+ */
 int lp::StringOperatorNode::getType()
 {
 	int result = 0;
@@ -351,6 +404,10 @@ int lp::StringOperatorNode::getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Returns the type of the relational operator node.
+ * @return The type of the result (BOOL).
+ */
 int lp::RelationalOperatorNode::getType()
 {
 	int result = 0;
@@ -373,6 +430,10 @@ int lp::RelationalOperatorNode::getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the logical operator node.
+ * @return The type of the result (BOOL).
+ */
 int lp::LogicalOperatorNode:: getType()
 {
 	int result = 0;
@@ -398,6 +459,9 @@ int lp::LogicalOperatorNode:: getType()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a UnaryMinusNode.
+ */
 void lp::UnaryMinusNode::printAST() 
 {
   std::cout << "UnaryMinusNode: -"  << std::endl;
@@ -405,6 +469,10 @@ void lp::UnaryMinusNode::printAST()
   this->_exp->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the numeric value of the unary minus node.
+ * @return The negated numeric value.
+ */
 double lp::UnaryMinusNode::evaluateNumber()
 {
 	double result = 0.0;
@@ -431,6 +499,9 @@ double lp::UnaryMinusNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a UnaryPlusNode.
+ */
 void lp::UnaryPlusNode::printAST() 
 {
   std::cout << "UnaryPlusNode: +"  << std::endl;
@@ -438,6 +509,10 @@ void lp::UnaryPlusNode::printAST()
   this->_exp->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the numeric value of the unary plus node.
+ * @return The numeric value.
+ */
 double lp::UnaryPlusNode::evaluateNumber()
 {
 	double result = 0.0;
@@ -462,6 +537,9 @@ double lp::UnaryPlusNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a PlusNode.
+ */
 void lp::PlusNode::printAST() 
 {
   std::cout << "PlusNode: +"  << std::endl;
@@ -471,6 +549,10 @@ void lp::PlusNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the addition operation.
+ * @return The sum of the left and right expressions.
+ */
 double lp::PlusNode::evaluateNumber()
 {
 	double result = 0.0;
@@ -495,6 +577,9 @@ double lp::PlusNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a MinusNode.
+ */
 void lp::MinusNode::printAST() 
 {
   std::cout << "MinusNode: -"  << std::endl;
@@ -504,6 +589,10 @@ void lp::MinusNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the subtraction operation.
+ * @return The difference between the left and right expressions.
+ */
 double lp::MinusNode::evaluateNumber() 
 {
 	double result = 0.0;
@@ -528,6 +617,9 @@ double lp::MinusNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a MultiplicationNode.
+ */
 void lp::MultiplicationNode::printAST() 
 {
   std::cout << "MultiplicationNode: *"  << std::endl;
@@ -537,6 +629,10 @@ void lp::MultiplicationNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the multiplication operation.
+ * @return The product of the left and right expressions.
+ */
 double lp::MultiplicationNode::evaluateNumber() 
 {
 	double result = 0.0;
@@ -562,6 +658,9 @@ double lp::MultiplicationNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a DivisionNode.
+ */
 void lp::DivisionNode::printAST()
 {
   std::cout << "DivisionNode: /" << std::endl;
@@ -571,6 +670,10 @@ void lp::DivisionNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the division operation.
+ * @return The quotient of the left and right expressions.
+ */
 double lp::DivisionNode::evaluateNumber() 
 {
 	double result = 0.0;
@@ -611,6 +714,9 @@ double lp::DivisionNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an IntegerDivisionNode.
+ */
 void lp::IntegerDivisionNode::printAST()
 {
   std::cout << "IntegerDivisionNode: /" << std::endl;
@@ -620,6 +726,10 @@ void lp::IntegerDivisionNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the integer division operation.
+ * @return The integer quotient of the left and right expressions.
+ */
 double lp::IntegerDivisionNode::evaluateNumber() 
 {
 	double result = 0;
@@ -677,6 +787,9 @@ double lp::IntegerDivisionNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ConcatenationNode.
+ */
 void lp::ConcatenationNode::printAST()
 {
   std::cout << "ConcatenationNode: /" << std::endl;
@@ -686,6 +799,10 @@ void lp::ConcatenationNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the string concatenation operation.
+ * @return The concatenated string.
+ */
 std::string lp::ConcatenationNode::evaluateString() 
 {
 	std::string result;
@@ -713,6 +830,9 @@ std::string lp::ConcatenationNode::evaluateString()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ModuloNode.
+ */
 void lp::ModuloNode::printAST()
 {
   std::cout << "ModuloNode: %" << std::endl;
@@ -722,6 +842,10 @@ void lp::ModuloNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the modulo operation.
+ * @return The remainder of the division of the left and right expressions.
+ */
 double lp::ModuloNode::evaluateNumber() 
 {
 	double result = 0.0;
@@ -763,6 +887,9 @@ double lp::ModuloNode::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a PowerNode.
+ */
 void lp::PowerNode::printAST() 
 {
   std::cout << "PowerNode: ^"  << std::endl;
@@ -772,6 +899,10 @@ void lp::PowerNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the power operation.
+ * @return The result of raising the left expression to the power of the right expression.
+ */
 double lp::PowerNode::evaluateNumber() 
 {
 	double result = 0.0;
@@ -795,12 +926,19 @@ double lp::PowerNode::evaluateNumber()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Returns the type of the BuiltinFunctionNode_0.
+ * @return NUMBER type.
+ */
 int lp::BuiltinFunctionNode_0::getType()
 {
 	return	NUMBER;
 }
 
 
+/**
+ * @brief Prints the AST representation of a BuiltinFunctionNode_0.
+ */
 void lp::BuiltinFunctionNode_0::printAST() 
 {
   std::cout << "BuiltinFunctionNode_0: "  << std::endl;
@@ -808,6 +946,10 @@ void lp::BuiltinFunctionNode_0::printAST()
   std::cout << this->_id << std::endl;
 }
 
+/**
+ * @brief Evaluates and returns the result of the built-in function with zero parameters.
+ * @return The result of the function.
+ */
 double lp::BuiltinFunctionNode_0::evaluateNumber() 
 {
 	// Get the identifier in the table of symbols as BuiltinParameter0
@@ -821,6 +963,10 @@ double lp::BuiltinFunctionNode_0::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the BuiltinFunctionNode_1.
+ * @return NUMBER type if the parameter is numeric, otherwise triggers a semantic warning.
+ */
 int lp::BuiltinFunctionNode_1::getType()
 {
 	int result = 0;
@@ -837,6 +983,9 @@ int lp::BuiltinFunctionNode_1::getType()
 	return	result;
 }
 
+/**
+ * @brief Prints the AST representation of a BuiltinFunctionNode_1.
+ */
 void lp::BuiltinFunctionNode_1::printAST() 
 {
   std::cout << "BuiltinFunctionNode_1: "  << std::endl;
@@ -847,6 +996,10 @@ void lp::BuiltinFunctionNode_1::printAST()
 	std::cout << std::endl;
 }
 
+/**
+ * @brief Evaluates and returns the result of the built-in function with one parameter.
+ * @return The result of the function.
+ */
 double lp::BuiltinFunctionNode_1::evaluateNumber() 
 {
 	double result = 0.0;
@@ -876,6 +1029,10 @@ double lp::BuiltinFunctionNode_1::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Returns the type of the BuiltinFunctionNode_2.
+ * @return The type of the result if both parameters have the same type, otherwise triggers a semantic warning.
+ */
 int lp::BuiltinFunctionNode_2::getType()
 {
 	int result = 0;
@@ -892,7 +1049,9 @@ int lp::BuiltinFunctionNode_2::getType()
 	return	result;
 }
 
-
+/**
+ * @brief Prints the AST representation of a BuiltinFunctionNode_2.
+ */
 void lp::BuiltinFunctionNode_2::printAST() 
 {
   std::cout << "BuiltinFunctionNode_2: " << std::endl;
@@ -905,6 +1064,10 @@ void lp::BuiltinFunctionNode_2::printAST()
 	std::cout << std::endl;
 }
 
+/**
+ * @brief Evaluates and returns the result of the built-in function with two parameters.
+ * @return The result of the function.
+ */
 double lp::BuiltinFunctionNode_2::evaluateNumber() 
 {
 	double result = 0.0;
@@ -935,6 +1098,9 @@ double lp::BuiltinFunctionNode_2::evaluateNumber()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a GreaterThanNode.
+ */
 void lp::GreaterThanNode::printAST()
 {
   std::cout << "GreaterThanNode: >" << std::endl;
@@ -944,6 +1110,10 @@ void lp::GreaterThanNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the greater than comparison.
+ * @return True if the left expression is greater than the right, false otherwise.
+ */
 bool lp::GreaterThanNode::evaluateBool() 
 {
 	bool result = false;
@@ -972,6 +1142,9 @@ bool lp::GreaterThanNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a GreaterOrEqualNode.
+ */
 void lp::GreaterOrEqualNode::printAST()
 {
   std::cout << "GreaterOrEqualNode: >= " << std::endl;
@@ -981,6 +1154,10 @@ void lp::GreaterOrEqualNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the greater or equal comparison.
+ * @return True if the left expression is greater than or equal to the right, false otherwise.
+ */
 bool lp::GreaterOrEqualNode::evaluateBool() 
 {
 	bool result = false;
@@ -1010,6 +1187,9 @@ bool lp::GreaterOrEqualNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a LessThanNode.
+ */
 void lp::LessThanNode::printAST()
 {
   std::cout << "LessThanNode: <" << std::endl;
@@ -1019,6 +1199,10 @@ void lp::LessThanNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the less than comparison.
+ * @return True if the left expression is less than the right, false otherwise.
+ */
 bool lp::LessThanNode::evaluateBool() 
 {
 	bool result = false;
@@ -1047,6 +1231,9 @@ bool lp::LessThanNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a LessOrEqualNode.
+ */
 void lp::LessOrEqualNode::printAST()
 {
   std::cout << "LessOrEqualNode: <=" << std::endl;
@@ -1056,6 +1243,10 @@ void lp::LessOrEqualNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the less or equal comparison.
+ * @return True if the left expression is less than or equal to the right, false otherwise.
+ */
 bool lp::LessOrEqualNode::evaluateBool() 
 {
 	bool result = false;
@@ -1085,6 +1276,9 @@ bool lp::LessOrEqualNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an EqualNode.
+ */
 void lp::EqualNode::printAST()
 {
   std::cout << "EqualNode: ==" << std::endl;
@@ -1094,6 +1288,10 @@ void lp::EqualNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the equality comparison.
+ * @return True if the left and right expressions are equal, false otherwise.
+ */
 bool lp::EqualNode::evaluateBool() 
 {
 	bool result = false;
@@ -1145,6 +1343,9 @@ bool lp::EqualNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a NotEqualNode.
+ */
 void lp::NotEqualNode::printAST()
 {
   std::cout << "NotEqualNode: !=" << std::endl;
@@ -1154,6 +1355,10 @@ void lp::NotEqualNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the inequality comparison.
+ * @return True if the left and right expressions are not equal, false otherwise.
+ */
 bool lp::NotEqualNode::evaluateBool() 
 {
 	bool result = false;
@@ -1206,6 +1411,9 @@ bool lp::NotEqualNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an AndNode.
+ */
 void lp::AndNode::printAST()
 {
   std::cout << "AndNode: &&" << std::endl;
@@ -1215,6 +1423,10 @@ void lp::AndNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the logical AND operation.
+ * @return True if both left and right expressions are true, false otherwise.
+ */
 bool lp::AndNode::evaluateBool() 
 {
 	bool result = false;
@@ -1246,6 +1458,9 @@ bool lp::AndNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an OrNode.
+ */
 void lp::OrNode::printAST()
 {
   std::cout << "OrNode: ||" << std::endl;
@@ -1255,6 +1470,10 @@ void lp::OrNode::printAST()
 	this->_right->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the logical OR operation.
+ * @return True if either left or right expression is true, false otherwise.
+ */
 bool lp::OrNode::evaluateBool() 
 {
 	bool result = false;
@@ -1286,6 +1505,9 @@ bool lp::OrNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a NotNode.
+ */
 void lp::NotNode::printAST()
 {
   std::cout << "NotNode: !" << std::endl;
@@ -1293,6 +1515,10 @@ void lp::NotNode::printAST()
   this->_exp->printAST();
 }
 
+/**
+ * @brief Evaluates and returns the result of the logical NOT operation.
+ * @return True if the expression is false, false otherwise.
+ */
 bool lp::NotNode::evaluateBool() 
 {
 	bool result = false;
@@ -1318,6 +1544,9 @@ bool lp::NotNode::evaluateBool()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an AssignmentStmt.
+ */
 void lp::AssignmentStmt::printAST() 
 {
   std::cout << "assignment_node: ="  << std::endl;
@@ -1337,6 +1566,9 @@ void lp::AssignmentStmt::printAST()
 
 }
 
+/**
+ * @brief Evaluates the assignment statement, assigning the value of the expression to the variable.
+ */
 void lp::AssignmentStmt::evaluate() 
 {
 	/* Get the identifier in the table of symbols as Variable */
@@ -1530,6 +1762,9 @@ void lp::AssignmentStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a PrintStmt.
+ */
 void lp::PrintStmt::printAST() 
 {
   std::cout << "printASTStmt: printAST"  << std::endl;
@@ -1538,7 +1773,9 @@ void lp::PrintStmt::printAST()
   std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the print statement, printing the value of the expression to the standard output.
+ */
 void lp::PrintStmt::evaluate() 
 {
 
@@ -1590,6 +1827,9 @@ void lp::PrintStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ReadStmt.
+ */
 void lp::ReadStmt::printAST() 
 {
   std::cout << "ReadStmt: read"  << std::endl;
@@ -1598,7 +1838,9 @@ void lp::ReadStmt::printAST()
   std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the read statement, reading a numeric value from the standard input and assigning it to the variable.
+ */
 void lp::ReadStmt::evaluate() 
 {   
 	double value;
@@ -1635,6 +1877,9 @@ void lp::ReadStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ReadStringStmt.
+ */
 void lp::ReadStringStmt::printAST() 
 {
   std::cout << "ReadStringStmt: read"  << std::endl;
@@ -1643,7 +1888,9 @@ void lp::ReadStringStmt::printAST()
   std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the read string statement, reading a string value from the standard input and assigning it to the variable.
+ */
 void lp::ReadStringStmt::evaluate() 
 {   
     std::string value;
@@ -1669,11 +1916,17 @@ void lp::ReadStringStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an EmptyStmt.
+ */
 void lp::EmptyStmt::printAST() 
 {
   // std::cout << "EmptyStmt "  << std::endl;
 }
 
+/**
+ * @brief Evaluates the empty statement (no operation).
+ */
 void lp::EmptyStmt::evaluate() 
 {
   // Empty
@@ -1683,6 +1936,9 @@ void lp::EmptyStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of an IfStmt.
+ */
 void lp::IfStmt::printAST() 
 {
   std::cout << "IfStmt: "  << std::endl;
@@ -1708,7 +1964,9 @@ void lp::IfStmt::printAST()
     std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the if statement, executing the corresponding block depending on the condition.
+ */
 void lp::IfStmt::evaluate() 
 {
     if (this->_cond->evaluateBool() == true)
@@ -1731,6 +1989,9 @@ void lp::IfStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a WhileStmt.
+ */
 void lp::WhileStmt::printAST() 
 {
   std::cout << "WhileStmt: "  << std::endl;
@@ -1748,7 +2009,9 @@ void lp::WhileStmt::printAST()
   std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the while statement, executing the block while the condition is true.
+ */
 void lp::WhileStmt::evaluate() 
 {
   // While the condition is true. the body is run 
@@ -1764,6 +2027,9 @@ void lp::WhileStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a RepeatStmt.
+ */
 void lp::RepeatStmt::printAST() 
 {
   std::cout << "RepeatStmt: "  << std::endl;
@@ -1781,7 +2047,9 @@ void lp::RepeatStmt::printAST()
   std::cout << std::endl;
 }
 
-
+/**
+ * @brief Evaluates the repeat statement, executing the block until the condition becomes true.
+ */
 void lp::RepeatStmt::evaluate() 
 {
   // While the condition is false. the body is run 
@@ -1796,6 +2064,9 @@ void lp::RepeatStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ForStmt.
+ */
 void lp::ForStmt::printAST()
 {
     std::cout << "ForStmt: " << std::endl;
@@ -1817,6 +2088,9 @@ void lp::ForStmt::printAST()
     std::cout << std::endl;
 }
 
+/**
+ * @brief Evaluates the for statement, executing the block for each value in the range.
+ */
 void lp::ForStmt::evaluate()
 {
     // Validate that _from is a numeric expression
@@ -1928,12 +2202,18 @@ void lp::ForStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a CaseStmt.
+ */
 void lp::CaseStmt::printAST() {
 	std::cout << "CaseStmt: case" << std::endl;
 	std::cout << "\t";
 	std::cout << std::endl;
 }
 
+/**
+ * @brief Evaluates the case statement, executing all statements in the case block.
+ */
 void lp::CaseStmt::evaluate() {
 
     std::list<Statement*>::iterator stmtIter;
@@ -1949,12 +2229,18 @@ void lp::CaseStmt::evaluate() {
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a SwitchStmt.
+ */
 void lp::SwitchStmt::printAST() {
 	std::cout << "SwitchStmt: switch" << std::endl;
 	std::cout << "\t";
 	std::cout << std::endl;
 }
 
+/**
+ * @brief Evaluates the switch statement, executing the matching case or the default block.
+ */
 void lp::SwitchStmt::evaluate() {
     double condValue = this->_exp->evaluateNumber();
     bool matched = false;
@@ -1992,6 +2278,9 @@ void lp::SwitchStmt::evaluate() {
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of a RandomNode.
+ */
 void lp::RandomNode::printAST() {
 	std::cout << "RandomNode: random" << std::endl;
 	std::cout << "\t";
@@ -2001,75 +2290,91 @@ void lp::RandomNode::printAST() {
 	std::cout << std::endl;
 }
 
+/**
+ * @brief Returns the type of the RandomNode (always NUMBER).
+ * @return NUMBER type.
+ */
 int lp::RandomNode::getType() {
     return NUMBER;
 }
 
+/**
+ * @brief Evaluates and returns a random number between the min and max values.
+ *        If min and max are strings, they are interpreted as variable names.
+ * @return The random value generated.
+ */
 double lp::RandomNode::evaluateNumber() {
-	std::srand(std::time(NULL));
+    std::srand(std::time(NULL));
 
     double minVal, maxVal;
 
-    if(_min->getType() == NUMBER && _max->getType() == NUMBER)
+    if (_min->getType() == NUMBER && _max->getType() == NUMBER)
     {
         minVal = static_cast<int>(_min->evaluateNumber());
         maxVal = static_cast<int>(_max->evaluateNumber());
 
-		if (minVal > maxVal) {
-			errorMsg = "Invalid range for random number generation: min is greater than max.";
-			suggestion = "Ensure that the minimum value is less than or equal to the maximum value.";
-			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
-		}
+        if (minVal > maxVal) {
+            errorMsg = "Invalid range for random number generation: minimum is greater than maximum.";
+            suggestion = "Ensure that the minimum value is less than or equal to the maximum value.";
+            semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+        }
 
-        int escala = 1000;
-        int minEscalado = static_cast<int>(minVal * escala);
-        int maxEscalado = static_cast<int>(maxVal * escala);
+        int scale = 1000;
+        int minScaled = static_cast<int>(minVal * scale);
+        int maxScaled = static_cast<int>(maxVal * scale);
 
-        if (minEscalado > maxEscalado) std::swap(minEscalado, maxEscalado);
+        if (minScaled > maxScaled) std::swap(minScaled, maxScaled);
 
-        int valorAleatorio = minEscalado + std::rand() % (maxEscalado - minEscalado + 1);
-        return static_cast<double>(valorAleatorio) / escala;
+        int randomValue = minScaled + std::rand() % (maxScaled - minScaled + 1);
+        return static_cast<double>(randomValue) / scale;
     }
-	else if(_min->getType() == STRING && _max->getType() == STRING)
-	{
-		// Get the existing symbols for the min and max variables
-		lp::Variable *symbolMin = (lp::Variable *)table.getSymbol(this->_min->evaluateString());
-		lp::Variable *symbolMax = (lp::Variable *)table.getSymbol(this->_max->evaluateString());
+    else if (_min->getType() == STRING && _max->getType() == STRING)
+    {
+        // Get the existing symbols for the min and max variables
+        lp::Variable *symbolMin = (lp::Variable *)table.getSymbol(this->_min->evaluateString());
+        lp::Variable *symbolMax = (lp::Variable *)table.getSymbol(this->_max->evaluateString());
 
-		lp::NumericVariable *randomVarMin;
-		lp::NumericVariable *randomVarMax;
+        lp::NumericVariable *randomVarMin = NULL;
+        lp::NumericVariable *randomVarMax = NULL;
 
-		if (symbolMin->getType() == NUMBER)
-		{
-			// If symbol is numeric, use it as the loop variable
-			randomVarMin = (lp::NumericVariable *)symbolMin;
-		}
+        if (symbolMin && symbolMin->getType() == NUMBER)
+        {
+            randomVarMin = (lp::NumericVariable *)symbolMin;
+        }
 
-		if (symbolMax->getType() == NUMBER)
-		{
-			// If symbol is numeric, use it as the loop variable
-			randomVarMax = (lp::NumericVariable *)symbolMax;
-		}
+        if (symbolMax && symbolMax->getType() == NUMBER)
+        {
+            randomVarMax = (lp::NumericVariable *)symbolMax;
+        }
 
-		minVal = randomVarMin->getValue();
-		maxVal = randomVarMax->getValue();
+        if (randomVarMin && randomVarMax)
+        {
+            minVal = randomVarMin->getValue();
+            maxVal = randomVarMax->getValue();
 
-        // Generar un número aleatorio con dos decimales entre minVal y maxVal
-        int escala = 1000; // Para dos decimales
-        int minEscalado = static_cast<int>(minVal * escala);
-        int maxEscalado = static_cast<int>(maxVal * escala);
+            int scale = 1000;
+            int minScaled = static_cast<int>(minVal * scale);
+            int maxScaled = static_cast<int>(maxVal * scale);
 
-        if (minEscalado > maxEscalado) std::swap(minEscalado, maxEscalado);
+            if (minScaled > maxScaled) std::swap(minScaled, maxScaled);
 
-        int valorAleatorio = minEscalado + std::rand() % (maxEscalado - minEscalado + 1);
-        return static_cast<double>(valorAleatorio) / escala;
+            int randomValue = minScaled + std::rand() % (maxScaled - minScaled + 1);
+            return static_cast<double>(randomValue) / scale;
+        }
+        else
+        {
+            errorMsg = "One or both variable references are invalid or not numeric.";
+            suggestion = "Ensure both variable names refer to numeric values.";
+            semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+            return -1;
+        }
     }
     else
     {
-        errorMsg = "Invalid types for Place statement.";
-        suggestion = "Ensure both x and y expressions evaluate to numeric values or valid variable names.";
-        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-                    suggestion);
+        errorMsg = "Invalid types for Random statement.";
+        suggestion = "Ensure both expressions evaluate to numeric values or valid numeric variable names.";
+        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+        return -1;
     }
 }
 
@@ -2077,6 +2382,9 @@ double lp::RandomNode::evaluateNumber() {
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a BlockStmt.
+ */
 void lp::BlockStmt::printAST() 
 {
   std::list<Statement *>::iterator stmtIter;
@@ -2089,7 +2397,9 @@ void lp::BlockStmt::printAST()
   }
 }
 
-
+/**
+ * @brief Evaluates all statements in the block.
+ */
 void lp::BlockStmt::evaluate() 
 {
   std::list<Statement *>::iterator stmtIter;
@@ -2103,11 +2413,17 @@ void lp::BlockStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a ClearScreenStmt.
+ */
 void lp::ClearScreenStmt::printAST() 
 {
   std::cout << "ClearScreenStmt: clear_screen" << std::endl;    
 }
 
+/**
+ * @brief Evaluates the clear screen statement, printing the clear screen text.
+ */
 void lp::ClearScreenStmt::evaluate() 
 {
   std::cout << CLEAR_SCREEN_TEXT;
@@ -2117,11 +2433,17 @@ void lp::ClearScreenStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a PlaceStmt.
+ */
 void lp::PlaceStmt::printAST() 
 {
   std::cout << "PlaceStmt: place" << std::endl;    
 }
 
+/**
+ * @brief Evaluates the place statement, placing the cursor at the specified coordinates.
+ */
 void lp::PlaceStmt::evaluate() 
 {
   int x;
@@ -2139,8 +2461,8 @@ void lp::PlaceStmt::evaluate()
     lp::Variable *symbolX = (lp::Variable *)table.getSymbol(this->_x->evaluateString());
 	lp::Variable *symbolY = (lp::Variable *)table.getSymbol(this->_y->evaluateString());
 
-    lp::NumericVariable * placeVarX;
-    lp::NumericVariable * placeVarY;
+    lp::NumericVariable * placeVarX = NULL;
+    lp::NumericVariable * placeVarY = NULL;
 
     if (symbolX->getType() == NUMBER)
     {
@@ -2176,6 +2498,9 @@ void lp::PlaceStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @brief Prints the AST representation of the root AST node.
+ */
 void lp::AST::printAST() 
 {
   std::list<Statement *>::iterator stmtIter;
@@ -2186,8 +2511,9 @@ void lp::AST::printAST()
   }
 }
 
-
-
+/**
+ * @brief Evaluates all statements in the AST.
+ */
 void lp::AST::evaluate() 
 {
   std::list<Statement *>::iterator stmtIter;

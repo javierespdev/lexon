@@ -2,7 +2,7 @@
 	\file    ast.hpp
 	\brief   Declaration of AST class
 	\author  
-	\date    2022-10-07
+	\date    2025-06-06
 	\version 1.0
 */
 
@@ -14,7 +14,6 @@
 #include <string>
 #include <list>
 #include <sstream>
-
 
 #define ERROR_BOUND 1.0e-6  //!< Error bound for the comparison of real numbers.
 
@@ -264,6 +263,11 @@ class NumberNode : public ExpNode
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
+/**
+ * @class StringNode
+ * @brief Definition of attributes and methods of StringNode class
+ * @note StringNode publicly inherits from ExpNode.
+ */
 class StringNode : public ExpNode
 {
 private:
@@ -1469,14 +1473,14 @@ class OrNode : public LogicalOperatorNode
 	\brief   Print the AST for OrNode
 	\return  void
 	\sa		   evaluateBool
-*/
+	*/
   void printAST();
 
 /*!	
 	\brief   Evaluate the OrNode
 	\return  bool
 	\sa		 printAST()
-*/
+	*/
   bool evaluateBool();
 };
 
@@ -2080,14 +2084,17 @@ class CaseStmt : public Statement
 class SwitchStmt : public Statement 
 {
  private:
-  ExpNode *_exp;
-  std::list<lp::CaseStmt *> *_caselist;
-  std::list<lp::Statement *> *_defaultlist;
+  ExpNode *_exp;                 //!< Expression to evaluate for switching
+  std::list<lp::CaseStmt *> *_caselist; //!< List of case statements
+  std::list<lp::Statement *> *_defaultlist; //!< List of statements for the default case
 
-  public:
-/*!		
-
-*/
+ public:
+  /**
+   * @brief Constructor for SwitchStmt without default case.
+   * @param exp Expression to evaluate for switching.
+   * @param caselist List of case statements.
+   * @param lineNumber Line number for error reporting.
+   */
   SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, int lineNumber)
   {
     this->_exp = exp;
@@ -2095,6 +2102,13 @@ class SwitchStmt : public Statement
     this->_lineNumber = lineNumber;
   }
 
+  /**
+   * @brief Constructor for SwitchStmt with default case.
+   * @param exp Expression to evaluate for switching.
+   * @param caselist List of case statements.
+   * @param defaultlist List of statements for the default case.
+   * @param lineNumber Line number for error reporting.
+   */
   SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, std::list<lp::Statement *> *defaultlist, int lineNumber)
   {
     this->_exp = exp;
@@ -2103,25 +2117,25 @@ class SwitchStmt : public Statement
     this->_defaultlist = defaultlist;
   }
 
-
-/*!
-	\brief   Print the AST for RepeatStmt
-	\return  void
-	\sa		   evaluate
-*/
+  /**
+   * @brief Prints the AST for the SwitchStmt node.
+   * @return void
+   * @sa evaluate
+   */
   void printAST();
 
-/*!	
-	\brief   Evaluate the RepeatStmt
-	\return  void
-	\sa	   	 printAST
-*/
+  /**
+   * @brief Evaluates the SwitchStmt, executing the matching case or default block.
+   * @return void
+   * @sa printAST
+   */
   void evaluate();
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /*!	
   \class   RandomNode
@@ -2163,34 +2177,31 @@ class RandomNode : public ExpNode
 */
 class BlockStmt : public Statement 
 {
- private:
-   std::list<Statement *> *_stmts;  //!< List of statements
-
-  public:
-/*!		
-	\brief Constructor of  WhileStmt
-	\param stmtList: list of Statement
-	\post  A new BlockStmt is created with the parameters
-*/
-  BlockStmt(std::list<Statement *> *stmtList, int lineNumber): _stmts(stmtList)
-	{
-		// Empty
-	}
-
-
-/*!
-	\brief   Print the AST for BlockStmt
-	\return  void
-	\sa		   evaluate
-*/
-  void printAST();
-
-/*!	
-	\brief   Evaluate the BlockStmt
-	\return  void
-	\sa	   	 printAST
-*/
-  void evaluate();
+private:
+    std::list<Statement *> *_stmts;  //!< List of statements in the block
+public:
+    /**
+     * @brief Constructor for BlockStmt.
+     * @param stmtList List of statements to include in the block.
+     * @param lineNumber Line number for error reporting.
+     * @post A new BlockStmt is created with the provided statements.
+     */
+    BlockStmt(std::list<Statement *> *stmtList, int lineNumber): _stmts(stmtList)
+    {
+        // Empty
+    }
+    /**
+     * @brief Prints the AST for the BlockStmt node.
+     * @return void
+     * @sa evaluate
+     */
+    void printAST();
+    /**
+     * @brief Evaluates the BlockStmt, executing all statements in the block.
+     * @return void
+     * @sa printAST
+     */
+    void evaluate();
 };
 
 
@@ -2283,40 +2294,34 @@ inline PlaceStmt(ExpNode * x, ExpNode * y, int lineNumber)
   \brief   Definition of atributes and methods of AST class
 */
 class AST {
- private:
-  std::list<Statement *> *stmts;  //!< List of statements
-
- public:
-
-/*!		
-	\brief Constructor of PrintStmt 
-	\param stmtList: pointer to a list of pointers to Statement
-	\post  A new PrintStmt is created with the parameter
-*/
-  AST(std::list<Statement *> *stmtList): stmts(stmtList)
-	{
-		// Empty
-	}
-
-/*!
-	\brief   print the AST
-	\return  void
-	\sa		   evaluate
-*/
-  void printAST();
-
-/*!	
-	\brief   evaluate the AST
-	\return  double
-	\sa	   	 printAST
-*/
-  void evaluate();
+private:
+    std::list<Statement *> *stmts;  //!< List of statements in the AST
+public:
+    /**
+     * @brief Constructor for AST.
+     * @param stmtList Pointer to a list of Statement pointers.
+     * @post A new AST is created with the provided list of statements.
+     */
+    AST(std::list<Statement *> *stmtList): stmts(stmtList)
+    {
+        // Empty
+    }
+    /**
+     * @brief Prints the AST by traversing and printing all statements.
+     * @return void
+     * @sa evaluate
+     */
+    void printAST();
+    /**
+     * @brief Evaluates the AST by executing all statements in order.
+     * @return void
+     * @sa printAST
+     */
+    void evaluate();
 };
 
 // End of name space lp
 }
-
-
 
 // End of _AST_HPP_
 #endif
