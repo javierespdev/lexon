@@ -1,14 +1,23 @@
-/*! 
-  \file interpreter.l
-  \brief Lexical or scanner file
+/*!
+    * \file interpreter.l
+    * \brief Lexical analyzer for the Lexon interpreter.
+    *
+    * This file defines the lexical rules and actions for tokenizing the input source code.
+    * It handles string literals, comments, operators, grouping symbols, assignment, identifiers,
+    * numbers, and error reporting. The scanner also manages line and column tracking for error messages.
+    *
+    * \date 2025-06-06
 */
-%option yylineno 
+
+%option yylineno
+
 %{
 
 /* Standard libraries */
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <string>
 
 /* Project headers */
@@ -23,13 +32,9 @@
 /* External variables */
 extern lp::Table table;        /* Symbol table */
 
-#include <cstdio>
-#include <string>
-
 %}
 
 %option yylineno
-
 %{
 
 /* Standard libraries */
@@ -57,7 +62,11 @@ extern lp::Table table;        /* Symbol table */
 
 %}
 
-/*! \name Regular definitions  */
+/*!
+ * \name Regular definitions
+ * \brief Definitions for character classes and token patterns.
+ */
+
 LETTER                      [a-zA-Z]
 
 DIGIT                       [0-9]
@@ -80,54 +89,56 @@ STRING                      \'([^'\\]|\\.)*\'
 
 COMMENT_IN_ONE_LINE         #[^\n]*
 
-/* States */
+/* States for error and comment handling */
 %x ERROR
 %x COMMENT_STATE
 
-/*! \name Regular expressions  */
+/*!
+ * \name Regular expressions and rules
+ * \brief Main lexical rules for tokenizing the input.
+ */
 %%
 
     /****** Strings ******/
 {STRING}            {
-                        std::string result;
-                        for (size_t i = 1; i < yyleng - 1; ++i)
-                        {
-                            if (yytext[i] == '\\' && i + 1 < yyleng - 1)
-                            {
-                                switch (yytext[i + 1])
-                                {
-                                    case 'n': result += '\n'; break;
-                                    case 't': result += '\t'; break;
-                                    case 'r': result += '\r'; break;
-                                    case '\'': result += '\''; break;
-                                    default:
-                                        result += '\\';
-                                        result += yytext[i + 1];
-                                        break;
-                                }
-                                ++i;
-                            }
-                            else
-                            {
-                                result += yytext[i];
-                            }
-                        }
-
-                        yylval.string = strdup(result.c_str());
-                        columnNumber += yyleng;
-                        currentLine += yytext;
-                        return STRING;
-                    }
+    /*
+     * Handles string literals, including escape sequences (\n, \t, \\ etc.).
+     * Converts the matched string to a C string and stores it in yylval.string.
+     */
+    std::string result;
+    for (size_t i = 1; i < yyleng - 1; ++i)
+    {
+        if (yytext[i] == '\\' && i + 1 < yyleng - 1)
+        {
+            switch (yytext[i + 1])
+            {
+                case 'n': result += '\n'; break;
+                case 't': result += '\t'; break;
+                case 'r': result += '\r'; break;
+                case '\'': result += '\''; break;
+                default:
+                    result += '\\';
+                    result += yytext[i + 1];
+                    break;
+            }
+            ++i;
+        }
+        else
+        {
+            result += yytext[i];
+        }
+    }
+    yylval.string = strdup(result.c_str());
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return STRING;
+}
 
     /****** Comments ******/
 {COMMENT_IN_ONE_LINE}               {}
-
 "(*"                                { BEGIN COMMENT_STATE; }
-
 <COMMENT_STATE>"(*"/(.|\n)          {}
-
 <COMMENT_STATE>"*)"                 { BEGIN 0; }
-
 <COMMENT_STATE>.                    {}
 
     /****** Numeric operators ******/
@@ -231,147 +242,133 @@ COMMENT_IN_ONE_LINE         #[^\n]*
           }
 
 [ \t]           {
-                    columnNumber += yyleng;
-                    currentLine += yytext;
-              }   /* skip white space and tabular */
+    /* Skip white space and tabular characters. */
+    columnNumber += yyleng;
+    currentLine += yytext;
+}
 
 \n              {
-                    lineNumber++;
-                    columnNumber = 1;
-                    currentLine = "";
-              }
+    /* Handle new lines: increment line counter and reset column. */
+    lineNumber++;
+    columnNumber = 1;
+    currentLine += yytext;
+}
 
 ";"             {
-                    columnNumber += yyleng;
-                    currentLine += yytext;
-                    return SEMICOLON;
-                }
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return SEMICOLON;
+}
 
 ":"             {
-                    columnNumber += yyleng;
-                    currentLine += yytext;
-                    return COLON;
-                }
-
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return COLON;
+}
 
 ","             {
-                    columnNumber += yyleng;
-                    currentLine += yytext;
-                    return COMMA;
-                }
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return COMMA;
+}
 
     /****** Number ******/
 {NUMBER1}|{NUMBER2}|{NUMBER3}  {
-                      /* Conversion of type and sending of the numerical value to the parser */
-                       yylval.number = atof(yytext); 
-                       columnNumber += yyleng;
-                       currentLine += yytext;
-                       return NUMBER; 
-                    }
+    /*
+     * Converts the matched numeric string to a double and stores it in yylval.number.
+     */
+    yylval.number = atof(yytext);
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return NUMBER;
+}
 
     /****** Identifier ******/
-{IDENTIFIER_WRONG1} { 
-                        /* 
-                            An identifier with two underscores is not allowed
-                            Change to error state
-                        */
-                        columnNumber += yyleng;
-                        currentLine += yytext;
-                        errorMsg = "Not valid identifier with double underscore";
-                        BEGIN(ERROR); 
-                        yymore(); 
-                    }
+{IDENTIFIER_WRONG1} {
+    /*
+     * An identifier with two underscores is not allowed.
+     * Switch to error state and set error message.
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid identifier with double underscore";
+    BEGIN(ERROR);
+    yymore();
+}
 
-{IDENTIFIER_WRONG2} { 
-                        /* 
-                            An identifier with an underscore at the end is not allowed
-                            Change to error state
-                        */
-                        columnNumber += yyleng;
-                        currentLine += yytext;
-                        errorMsg = "Not valid identifier with underscore at the end";
-                        BEGIN(ERROR); 
-                        yymore(); 
-                    }
-                    
-{IDENTIFIER_WRONG3} { 
-                        /* 
-                            An identifier with an underscore at the beginning or a digit at the beginning is not allowed
-                            Change to error state
-                        */
-                        columnNumber += yyleng;
-                        currentLine += yytext;
-                        errorMsg = "Not valid identifier with underscore at the beginning or a digit at the beginning";
-                        BEGIN(ERROR); 
-                        yymore(); 
-                    }
+{IDENTIFIER_WRONG2} {
+    /*
+     * An identifier with an underscore at the end is not allowed.
+     * Switch to error state and set error message.
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid identifier with underscore at the end";
+    BEGIN(ERROR);
+    yymore();
+}
 
-{IDENTIFIER}        {
-                        /* 
-                            Convert the input text (yytext) to lowercase and store it in 'identifier'
-                        */
-                        std::string identifier;
-                        for (int i = 0; yytext[i] != '\0'; ++i)
-                        {
-                            identifier += std::tolower(yytext[i]);
-                        }
+{IDENTIFIER_WRONG3} {
+    /*
+     * An identifier with an underscore or digit at the beginning is not allowed.
+     * Switch to error state and set error message.
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid identifier with underscore at the beginning or a digit at the beginning";
+    BEGIN(ERROR);
+    yymore();
+}
 
-                        /* 
-                          strdup() function returns a pointer to a new string 
-                          which  is a duplicate of the string yytext
-                        */
-                          yylval.string =  strdup(identifier.c_str());
+{IDENTIFIER} {
+    /*
+     * Converts the input text (yytext) to lowercase and stores it in 'identifier'.
+     * If the identifier is not in the symbol table, it is inserted as an undefined variable.
+     * Otherwise, returns the token for the existing symbol.
+     */
+    std::string identifier;
+    for (int i = 0; yytext[i] != '\0'; ++i)
+    {
+        identifier += std::tolower(yytext[i]);
+    }
+    yylval.string = strdup(identifier.c_str());
+    if (table.lookupSymbol(identifier) == false)
+    {
+        lp::NumericVariable *n = new lp::NumericVariable(identifier, VARIABLE, UNDEFINED, 0.0);
+        table.installSymbol(n);
+        columnNumber += yyleng;
+        currentLine += yytext;
+        return VARIABLE;
+    }
+    else
+    {
+        lp::Symbol *s = table.getSymbol(identifier);
+        columnNumber += yyleng;
+        currentLine += yytext;
+        return s->getToken();
+    }
+}
 
-                        /* If the identifier is not in the table of symbols then it is inserted */    
-                         if (table.lookupSymbol(identifier) == false)
-                            {
-                                /* 
-                                 The identifier is inserted into the symbol table 
-                                 as undefined Variable with value 0.0
-                                */
-                                lp::NumericVariable *n = new lp::NumericVariable(identifier,VARIABLE,UNDEFINED,0.0);
+. {
+    /* Any other character: treat as error and accumulate for error reporting. */
+    currentLine += yytext;
+    columnNumber += yyleng;
+    BEGIN(ERROR);
+    yymore();
+}
 
-                                /* A pointer to the new NumericVariable is inserted into the table of symbols */
-                                table.installSymbol(n);
+<ERROR>([^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&]) { 
+    yymore(); 
+    currentLine += yytext;
+    }
 
-                                columnNumber += yyleng;
-                                currentLine += yytext;
-                                return VARIABLE;
-                            }
-
-                        /* 
-                            If the identifier is in the table of symbols then its token is returned 
-                                The identifier can be a variable or a numeric constant
-                        */
-                        else 
-                            {
-                                lp::Symbol    *s = table.getSymbol(identifier);
-
-                                columnNumber += yyleng;
-                                currentLine += yytext;
-                                /*  If the identifier is in the table then its token is returned  */
-                                return s->getToken();
-                            }
-                    }
-
-.                                {
-                                    currentLine += yytext;
-                                    columnNumber += yyleng;
-                                    BEGIN(ERROR);
-                                    yymore();
-                                  }
-
-<ERROR>([^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&])    { yymore(); }
-
-
-<ERROR>(.|\n)                { 
-                                /* Rewind one position */
-                                yyless(yyleng-1);
-
-                                /* Display the error message */
-                                lexicalWarning(fileName, lineNumber, columnNumber, yytext, errorMsg);
-
-                                /* Restore the initial state */
-                                BEGIN(INITIAL);
-                             }
+<ERROR>(.|\n) {
+    /*
+     * Handles error state: rewinds one position, displays the error message,
+     * and restores the initial state.
+     */
+    yyless(yyleng-1);
+    lexicalWarning(fileName, lineNumber, columnNumber, yytext, errorMsg);
+    BEGIN(INITIAL);
+}
 %%

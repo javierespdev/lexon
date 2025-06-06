@@ -76,5 +76,3 @@ UML_LOOK            = NO
 # The default value is: YES.
 
 HAVE_DOT			= YES
-
-

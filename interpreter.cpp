@@ -91,7 +91,6 @@ lp::Table table; //!< Table of Symbols
 	\note   C++ requires that main returns an int value
 	\sa     yyparse, yylex
 */
-
 int main(int argc, char *argv[])
 {
     yydebug = 0;
@@ -113,8 +112,20 @@ int main(int argc, char *argv[])
 
     if (argc == 2) 
     {
+        std::string filename = argv[1];
+
+        if (filename.size() < 3 || filename.substr(filename.size() - 2) != ".p") {
+            std::cerr << "Error: The input file must have a '.p' extension." << std::endl;
+            return 1;
+        }
+
         yyin = fopen(argv[1], "r");
-        fileName = argv[1];
+
+        if (!yyin) {
+            std::cerr << "Error: The file '" << argv[1] << "' does not exist or cannot be opened." << std::endl;
+            return 1;
+        }
+
         interactiveMode = false;
 
         std::ifstream file(argv[1]);
@@ -131,44 +142,15 @@ int main(int argc, char *argv[])
             root->evaluate();
         }
     }
-    else
+    else if (argc == 1)
     {
         interactiveMode = true;
-        std::string block, line;
-        bool esperando_bloque = false;
-        while (true) {
-            std::cout << (block.empty() ? "> " : (esperando_bloque ? "| " : "> "));
-            if (!std::getline(std::cin, line)) break;
-            if (line.empty() && block.empty()) continue;
-
-            if (!block.empty()) block += "\n";
-            block += line;
-            currentInteractiveLine = block;
-            sourceLines.push_back(line); // Guarda solo la línea actual para historial
-
-            // Detecta si estamos esperando un bloque (switch, if, while, for, repeat, {)
-            if ((block.find("switch") != std::string::npos && line != "end_switch") ||
-                (block.find("if") != std::string::npos && line != "end_if") ||
-                (block.find("while") != std::string::npos && line != "end_while") ||
-                (block.find("for") != std::string::npos && line != "end_for") ||
-                (block.find("repeat") != std::string::npos && line != "until") ||
-                (block.find("{") != std::string::npos && line != "}") ) {
-                esperando_bloque = true;
-            }
-            // Si la línea actual es un cierre de bloque, ya puedes parsear
-            if (line == "end_switch" || line == "end_if" || line == "end_while" ||
-                line == "end_for" || line == "until" || line == "}") {
-                esperando_bloque = false;
-            }
-
-            if (!esperando_bloque) {
-                YY_BUFFER_STATE buffer = yy_scan_string((block + "\n").c_str());
-                yyparse();
-                yy_delete_buffer(buffer);
-                block.clear();
-            }
-        }
-        return 0;
+        yyparse();
+    }
+    else
+    {
+        std::cerr << "Usage: " << progname << " [input_file.p]" << std::endl;
+        std::cerr << "Run as './interpreter.exe' for interactive mode or './interpreter.exe <file.p>' to execute a program file." << std::endl;
     }
 
     return 0;

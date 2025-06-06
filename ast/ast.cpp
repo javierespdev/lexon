@@ -265,6 +265,7 @@ void lp::NumberNode::printAST()
  */
 double lp::NumberNode::evaluateNumber() 
 { 
+
     return this->_number; 
 }
 

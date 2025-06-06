@@ -1,108 +1,105 @@
+# Makefile for Lexon main program and modules
+
 NAME=interpreter
 
-# Compiler
+# C++ compiler
 CPP = g++
 
-# Directives for the compiler
-# -c: the output is an object file, the linking stage is not done.
-# -g: debug
-# -Wall: all warnings
-# -ansi: standard language
-# -02: optimization level
-CFLAGS = -c -g  -Wall -ansi -O2
+# Compiler flags:
+# -c: Compile only, do not link
+# -g: Debug info
+# -Wall: Enable all warnings
+# -ansi: Use ANSI standard
+# -O2: Optimization level 2
+CFLAGS = -c -g -Wall -ansi -O2
 
-# Directive for flex's library
+# Flex library for lexical analysis
 LFLAGS = -lfl
-#LFLAGS = -ll
 
-# Objects
-OBJECTS= $(NAME).o includes/globals.o
+# Object files for main and modules
+OBJECTS = $(NAME).o includes/globals.o
 OBJECTS-PARSER = parser/*.o
 OBJECTS-ERROR = error/*.o
 OBJECTS-TABLE = table/*.o
 OBJECTS-AST = ast/*.o
 
-
-# Includes
-# MODIFIED in example 7: ./table/table.hpp
-# MODIFIED in example 10: ./table/init.hpp
-# MODIFIED in example 16: ./ast/ast.hpp
+# Project header dependencies
 INCLUDES = ./parser/interpreter.tab.h ./error/error.hpp \
-			./table/table.hpp ./includes/globals.hpp \
-			./table/init.hpp \
-			./ast/ast.hpp
+	./table/table.hpp ./includes/globals.hpp \
+	./table/init.hpp \
+	./ast/ast.hpp
 
-#######################################################
-# Predefined macros 
-#
-# $@: name of the target
-# $^: all the dependencies
+# Predefined macros:
+# $@: target name
+# $^: all dependencies
 # $<: first dependency
-#
+
 #######################################################
+# Main build rule: build the executable and all modules
+$(NAME).exe : parser-dir error-dir table-dir ast-dir $(OBJECTS)
+	@echo "Generating $(NAME).exe"
+	@$(CPP) $(OBJECTS) $(OBJECTS-PARSER) $(OBJECTS-ERROR) $(OBJECTS-TABLE) $(OBJECTS-AST) \
+	$(LFLAGS) -o $(NAME).exe
 
-
-#Modified in examples 7, 16
-$(NAME).exe :  parser-dir error-dir table-dir ast-dir $(OBJECTS)
-	@echo "Generating " $(NAME).exe
-	@$(CPP) $(OBJECTS) $(OBJECTS-PARSER) $(OBJECTS-ERROR)  $(OBJECTS-TABLE)  $(OBJECTS-AST) \
-	$(LFLAGS) -o $(NAME).exe 
-
-
-# Main program
+# Compile the main program
 $(NAME).o: $(NAME).cpp parser-dir ast-dir $(INCLUDES)
-	@echo "Compiling " $<
+	@echo "Compiling $<"
 	@$(CPP) $(CFLAGS) $<
 	@echo
 
-# 
+# Build parser module
 parser-dir:
-	@echo "Accessing directory parser" 
+	@echo "Accessing directory parser"
 	@echo
 	@make -C parser/
 	@echo
 
+# Build error module
 error-dir:
-	@echo "Accessing directory error" 
+	@echo "Accessing directory error"
 	@echo
-	@make -C error/ 
+	@make -C error/
 	@echo
 
+# Build table module
 table-dir:
-	@echo "Accessing directory table" 
+	@echo "Accessing directory table"
 	@echo
-	@make -C table/ 
+	@make -C table/
 	@echo
 
+# Build AST module
 ast-dir:
-	@echo "Accessing directory ast" 
+	@echo "Accessing directory ast"
 	@echo
-	@make -C ast/ 
+	@make -C ast/
 	@echo
-
 
 #######################################################
-$(NAME).output: 
-	@echo "Generating: " $@
+# Generate parser output file (for conflict analysis)
+$(NAME).output:
+	@echo "Generating: $@"
 	@make -C parser/ $@
 	@echo
 
-
 #######################################################
-# Generate the documentation
+# Generate documentation using Doxygen
+# Requires a Doxyfile in the project root
+# Output will be in the html/ directory
+# Usage: make doc
+
 doc: Doxyfile
 	doxygen
 
 #######################################################
-# Auxiliary files and html directory are deleted
-# Modified in examples 7, 16
-clean: 
+# Clean up all generated files and directories
+clean:
 	@echo "Deleting html"
-	@rm -rf html 
-	@echo "Deleting " $(OBJECTS)  $(NAME).exe  *~ 
-	@rm -f $(OBJECTS) $(NAME).exe *~ 
+	@rm -rf html
+	@echo "Deleting $(OBJECTS) $(NAME).exe *~"
+	@rm -f $(OBJECTS) $(NAME).exe *~
 	@echo
-	@make -C parser/ clean 
+	@make -C parser/ clean
 	@echo
 	@make -C error/ clean
 	@echo
@@ -110,5 +107,3 @@ clean:
 	@echo
 	@make -C ast/ clean
 	@echo
-
-

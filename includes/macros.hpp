@@ -6,10 +6,8 @@
   \note  http://isthe.com/chongo/tech/comp/ansi_escapes.html
 */
 
-
 #ifndef _MACROS_HPP_
 #define _MACROS_HPP_ //!< Macros for the screen
-
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS 
 #define DOXYGEN_SHOULD_SKIP_THIS //!< Prevent doxygen from processing this file several times
@@ -31,7 +29,6 @@
 #define BLINK       "\e[5m"  //!< Blink
 
 #define INVERSE     "\e[7m"  //!< Inverse
-
 
 //!< regular colors
 #define BLACK		"\e[0;30m"  //!< Black
@@ -103,9 +100,6 @@
 #define ONICYAN		"\e[0;106m"	//!< Cyan
 #define ONIWHITE	"\e[0;107m"	//!< White
 
-
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-
 #endif  // _MACROS_HPP_
-
