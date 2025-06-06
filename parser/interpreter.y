@@ -32,6 +32,9 @@
 /* AST class */
 #include "../ast/ast.hpp"
 
+/* Globals */
+#include "../includes/globals.hpp"
+
 /* Table of symbol */
 #include "../table/table.hpp"
 #include "../table/numericVariable.hpp"
@@ -413,12 +416,17 @@ asgn:
   | CONSTANT ASSIGNMENT exp
     {
         // Error: assignment to constant
-        execerror("Semantic error in assignment: it is not allowed to modify a constant ", $1);
+        lineNumber = @1.first_line;
+        errorMsg = "Assignment to constant is not allowed.";
+        suggestion = "Use a variable name instead of a constant if you intend to modify the value.";
+        semanticWarning(fileName, lineNumber, columnNumber, errorMsg, suggestion);
     }
   | CONSTANT ASSIGNMENT asgn
     {
-        // Error: multiple assignment to constant
-        execerror("Semantic error in multiple assignment: it is not allowed to modify a constant ", $1);
+        // Error: reassignment to constant
+        errorMsg = "Reassignment to a constant is not allowed.";
+        suggestion = "If you need to change the value, consider using a variable instead.";
+        semanticWarning(fileName, lineNumber, columnNumber, errorMsg, suggestion);
     }
 ;
 
@@ -446,8 +454,11 @@ read:
     }
   | READ LPAREN CONSTANT RPAREN
     {
-        // Error: read into constant
-        execerror("Semantic error in \"read statement\": it is not allowed to modify a constant ", $3);
+        // Error: read statement for constant
+        lineNumber = @1.first_line;
+        errorMsg = "Read statement cannot be applied to a constant.";
+        suggestion = "Use a variable name instead of a constant if you intend to modify the value.";
+        semanticWarning(fileName, lineNumber, columnNumber, errorMsg, suggestion);
     }
 ;
 
@@ -566,11 +577,19 @@ exp:
                     }
                     break;
                 default:
-                    execerror("Syntax error: too many parameters for function ", $1);
+                    lineNumber = @1.first_line;
+                    errorMsg = "incompatible number of parameters for function";
+                    syntaxWarning(fileName, lineNumber, columnNumber, errorMsg);
+                    break;
             }
         }
         else
-            execerror("Syntax error: incompatible number of parameters for function", $1);
+        {
+            // Error: incorrect number of parameters for the builtin function
+            lineNumber = @1.first_line;
+            errorMsg = "incompatible number of parameters for function";
+            syntaxWarning(fileName, lineNumber, columnNumber, errorMsg);
+        }
     }
   | exp GREATER_THAN exp
     {

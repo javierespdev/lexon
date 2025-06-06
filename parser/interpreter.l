@@ -77,6 +77,12 @@ NUMBER2                     {DIGIT}*\.{DIGIT}+
 
 NUMBER3                     {DIGIT}+(\.{DIGIT}+)?(E[+\-]?{DIGIT}+)?
 
+NUMBER_WRONG1               {DIGIT}+\.\.+{DIGIT}*
+
+NUMBER_WRONG2               {DIGIT}+(e|E)(e|E)+{DIGIT}*
+
+NUMBER_WRONG3               {DIGIT}+(e|E)(\+|\-)(\+|\-)+{DIGIT}*
+
 IDENTIFIER                  {LETTER}({LETTER}|{DIGIT}|_)*
 
 IDENTIFIER_WRONG1           {LETTER}({LETTER}|{DIGIT}|_)*__({LETTER}|{DIGIT}|_)*
@@ -273,6 +279,42 @@ COMMENT_IN_ONE_LINE         #[^\n]*
 }
 
     /****** Number ******/
+{NUMBER_WRONG1} {
+    /*
+     * Lexical error: detected a number with multiple decimal points.
+     * Example: "12..34"
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid number with multiple decimal points detected";
+    BEGIN(ERROR);
+    yymore();
+}
+
+{NUMBER_WRONG2} {
+    /*
+     * Lexical error: detected a number with repeated exponent characters.
+     * Example: "5ee10"
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid number with repeated exponent characters detected";
+    BEGIN(ERROR);
+    yymore();
+}
+
+{NUMBER_WRONG3} {
+    /*
+     * Lexical error: detected a number with multiple consecutive signs in exponent.
+     * Example: "3e++5"
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    errorMsg = "Not valid number with multiple consecutive signs in exponent detected";
+    BEGIN(ERROR);
+    yymore();
+}
+
 {NUMBER1}|{NUMBER2}|{NUMBER3}  {
     /*
      * Converts the matched numeric string to a double and stores it in yylval.number.

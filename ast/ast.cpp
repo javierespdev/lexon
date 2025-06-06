@@ -417,6 +417,8 @@ int lp::RelationalOperatorNode::getType()
 		result = BOOL;
 	else if ( (this->_left->getType() == BOOL) and (this->_right->getType() == BOOL))
 		result = BOOL;
+	else if ( (this->_left->getType() == STRING) and (this->_right->getType() == STRING))
+		result = BOOL;
 	else
 	{
 		errorMsg = "Incompatible types for \"Relational Operator\"";
@@ -1118,22 +1120,50 @@ void lp::GreaterThanNode::printAST()
 bool lp::GreaterThanNode::evaluateBool() 
 {
 	bool result = false;
+    std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
-		double leftNumber, rightNumber;
-		leftNumber = this->_left->evaluateNumber();
-		rightNumber = this->_right->evaluateNumber();
+		switch (this->_left->getType())
+		{
+		case NUMBER:
+			double leftNumber, rightNumber;
+			leftNumber = this->_left->evaluateNumber();
+			rightNumber = this->_right->evaluateNumber();
 
-		result = (leftNumber > rightNumber);
+			result = (leftNumber > rightNumber);
+			break;
+		
+		case BOOL:
+			bool leftBoolean, rightBoolean;
+			leftBoolean = this->_left->evaluateBool();
+			rightBoolean = this->_right->evaluateBool();
+
+			// 
+			result = (leftBoolean > rightBoolean);
+			break;
+		case STRING:
+			leftString = this->_left->evaluateString();
+			rightString = this->_right->evaluateString();
+
+			// 
+			result = (leftString > rightString);
+			break;
+		default:
+			errorMsg = "Incompatible types of parameters for operator Greater than";
+			suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+					suggestion);
+			break;
+		}
+
 	}
 	else
 	{
 		errorMsg = "Incompatible types of parameters for operator Greater than";
-		
 		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-				 suggestion);
+				suggestion);
 	}
 
 	return result;
@@ -1162,14 +1192,41 @@ void lp::GreaterOrEqualNode::printAST()
 bool lp::GreaterOrEqualNode::evaluateBool() 
 {
 	bool result = false;
+	std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
-		double leftNumber, rightNumber;
-		leftNumber = this->_left->evaluateNumber();
-		rightNumber = this->_right->evaluateNumber();
+		switch (this->_left->getType())
+		{
+		case NUMBER:
+			double leftNumber, rightNumber;
+			leftNumber = this->_left->evaluateNumber();
+			rightNumber = this->_right->evaluateNumber();
+			result = (leftNumber >= rightNumber);
+			break;
+		
+		case BOOL:
+			bool leftBoolean, rightBoolean;
+			leftBoolean = this->_left->evaluateBool();
+			rightBoolean = this->_right->evaluateBool();
 
-		result = (leftNumber >= rightNumber);
+			// 
+			result = (leftBoolean >= rightBoolean);
+			break;
+		case STRING:
+			leftString = this->_left->evaluateString();
+			rightString = this->_right->evaluateString();
+
+			// 
+			result = (leftString >= rightString);
+			break;
+		default:
+			errorMsg = "Incompatible types of parameters for operator Greater or equal than";
+			suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+					suggestion);
+			break;
+		}
 	}
 	else
 	{
@@ -1207,22 +1264,50 @@ void lp::LessThanNode::printAST()
 bool lp::LessThanNode::evaluateBool() 
 {
 	bool result = false;
+    std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
-		double leftNumber, rightNumber;
-		leftNumber = this->_left->evaluateNumber();
-		rightNumber = this->_right->evaluateNumber();
+		switch (this->_left->getType())
+		{
+		case NUMBER:
+			double leftNumber, rightNumber;
+			leftNumber = this->_left->evaluateNumber();
+			rightNumber = this->_right->evaluateNumber();
 
-		result = (leftNumber < rightNumber);
+			result = (leftNumber < rightNumber);
+			break;
+		
+		case BOOL:
+			bool leftBoolean, rightBoolean;
+			leftBoolean = this->_left->evaluateBool();
+			rightBoolean = this->_right->evaluateBool();
+
+			// 
+			result = (leftBoolean < rightBoolean);
+			break;
+		case STRING:
+			leftString = this->_left->evaluateString();
+			rightString = this->_right->evaluateString();
+
+			// 
+			result = (leftString < rightString);
+			break;
+		default:
+			errorMsg = "Incompatible types of parameters for operator Greater than";
+			suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+					suggestion);
+			break;
+		}
+
 	}
 	else
 	{
-		errorMsg = "Incompatible types of parameters for operator Less than";
-		
+		errorMsg = "Incompatible types of parameters for operator Greater than";
 		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-				 suggestion);
+				suggestion);
 	}
 
 	return result;
@@ -1251,22 +1336,50 @@ void lp::LessOrEqualNode::printAST()
 bool lp::LessOrEqualNode::evaluateBool() 
 {
 	bool result = false;
+    std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
-		double leftNumber, rightNumber;
-		leftNumber = this->_left->evaluateNumber();
-		rightNumber = this->_right->evaluateNumber();
+		switch (this->_left->getType())
+		{
+		case NUMBER:
+			double leftNumber, rightNumber;
+			leftNumber = this->_left->evaluateNumber();
+			rightNumber = this->_right->evaluateNumber();
 
-		result = (leftNumber <= rightNumber);
+			result = (leftNumber <= rightNumber);
+			break;
+		
+		case BOOL:
+			bool leftBoolean, rightBoolean;
+			leftBoolean = this->_left->evaluateBool();
+			rightBoolean = this->_right->evaluateBool();
+
+			// 
+			result = (leftBoolean <= rightBoolean);
+			break;
+		case STRING:
+			leftString = this->_left->evaluateString();
+			rightString = this->_right->evaluateString();
+
+			// 
+			result = (leftString <= rightString);
+			break;
+		default:
+			errorMsg = "Incompatible types of parameters for operator Greater than";
+			suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+					suggestion);
+			break;
+		}
+
 	}
 	else
 	{
-		errorMsg = "Incompatible types of parameters for operator Less or equal than";
-		
+		errorMsg = "Incompatible types of parameters for operator Greater than";
 		suggestion = "Check that both expressions are assigned numeric values before using them in a relational operation.";
 		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
-				 suggestion);
+				suggestion);
 	}
 
 	return result;
@@ -1296,6 +1409,7 @@ void lp::EqualNode::printAST()
 bool lp::EqualNode::evaluateBool() 
 {
 	bool result = false;
+	std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
@@ -1316,7 +1430,14 @@ bool lp::EqualNode::evaluateBool()
 				// 
 				result = (leftBoolean == rightBoolean);
 				break;
-		  default:
+			case STRING:
+				leftString = this->_left->evaluateString();
+				rightString = this->_right->evaluateString();
+
+				// 
+				result = (leftString == rightString);
+				break;
+		default:
 				// warning("Runtime error: incompatible types of parameters for ", 
 								// "Equal operator");
 				errorMsg = "Incompatible types of parameters for Equal operator";
@@ -1363,6 +1484,7 @@ void lp::NotEqualNode::printAST()
 bool lp::NotEqualNode::evaluateBool() 
 {
 	bool result = false;
+    std::string leftString, rightString;
 
 	if (this->getType() == BOOL)
 	{
@@ -1382,6 +1504,13 @@ bool lp::NotEqualNode::evaluateBool()
 
 				// 
 				result = (leftBoolean != rightBoolean);
+				break;
+			case STRING:
+				leftString = this->_left->evaluateString();
+				rightString = this->_right->evaluateString();
+
+				// 
+				result = (leftString != rightString);
 				break;
 		  default:
 				// warning("Runtime error: incompatible types of parameters for ", 

@@ -46,6 +46,18 @@ void semanticWarning(const std::string& filename,
              const std::string& suggestion);
 
 /**
+ * @brief Prints a formatted syntax warning message with context.
+ * @param filename Name of the source file.
+ * @param line Line number where the warning occurred.
+ * @param column Column number where the warning occurred.
+ * @param errorMsg Description of the syntax error.
+ */
+void syntaxWarning(const std::string& filename,
+             int line,
+             int column,
+             const std::string& errorMsg);
+
+/**
  * @brief Shows a runtime error message with detailed information and suggestion.
  * @param filename Name of the source file where the error occurred.
  * @param line Line number of the error location.
