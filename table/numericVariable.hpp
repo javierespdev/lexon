@@ -80,6 +80,7 @@ class NumericVariable:public lp::Variable
 		this->setValue(n.getValue());
 	}
 
+	using Variable::operator=;
 
 /*!	
 	\name Observer

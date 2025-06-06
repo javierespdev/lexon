@@ -141,6 +141,7 @@ class StringVariable : public lp::Variable
 */
 	void write() const;
 
+using Variable::operator=;
 
 /*!	
 	\name Operators

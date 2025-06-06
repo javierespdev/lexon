@@ -92,6 +92,7 @@ static struct {
         {"not", NOT},
         {"or", OR},
         {"and", AND},
+        {"rand", RANDOM},
         {"", 0}
 };
 
@@ -102,7 +103,7 @@ static struct {    /* Predefined functions names */
                 std::string name ;
 				lp::TypePointerDoubleFunction_1 function;
               } function_1 [] = {
-	                   {"sin",     sin},
+	                  {"sin",     sin},
 		               {"cos",     cos},
 		               {"atan",    atan},
 		               {"log",     Log},

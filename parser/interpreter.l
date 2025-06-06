@@ -247,6 +247,12 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                     return SEMICOLON;
                 }
 
+":"             {
+                    columnNumber += yyleng;
+                    currentLine += yytext;
+                    return COLON;
+                }
+
 
 ","             {
                     columnNumber += yyleng;
@@ -305,7 +311,6 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                             Convert the input text (yytext) to lowercase and store it in 'identifier'
                         */
                         std::string identifier;
-
                         for (int i = 0; yytext[i] != '\0'; ++i)
                         {
                             identifier += std::tolower(yytext[i]);
@@ -354,7 +359,7 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                                     columnNumber += yyleng;
                                     BEGIN(ERROR);
                                     yymore();
-                                 }
+                                  }
 
 <ERROR>([^0-9+\-*/()\^% \t\n\;a-zA-Z=<>!&])    { yymore(); }
 

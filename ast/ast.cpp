@@ -11,7 +11,8 @@
 #include <string>
 #include <list>
 #include <sstream>
-
+#include <cstdlib>
+#include <ctime>
 // Para usar la funciones pow y std::abs
 #include <cmath>
 
@@ -736,13 +737,14 @@ double lp::ModuloNode::evaluateNumber()
     	if(std::abs(rightNumber) > ERROR_BOUND)
 				result = (int) leftNumber % (int) rightNumber;
 		else
+        {
 			// warning("Runtime error", "Division by zero");
 			errorMsg = "Division by zero in ModuloNode.";
 			
 			suggestion = "Check that the divisor is not zero before using it in a modulo operation.";
 			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 					 suggestion);
-			
+        }
 	}
 	else
 	{
@@ -1539,9 +1541,6 @@ void lp::PrintStmt::printAST()
 
 void lp::PrintStmt::evaluate() 
 {
-	std::cout << BIYELLOW; 
-	std::cout << "print: ";
-	std::cout << RESET; 
 
 	switch(this->_exp->getType())
 	{
@@ -1603,9 +1602,6 @@ void lp::ReadStmt::printAST()
 void lp::ReadStmt::evaluate() 
 {   
 	double value;
-	std::cout << BIYELLOW; 
-	std::cout << "Insert a numeric value --> " ;
-	std::cout << RESET; 
 	std::cin >> value;
 
 	/* Get the identifier in the table of symbols as Variable */
@@ -1651,9 +1647,6 @@ void lp::ReadStringStmt::printAST()
 void lp::ReadStringStmt::evaluate() 
 {   
     std::string value;
-    std::cout << BIYELLOW; 
-    std::cout << "Insert a string value --> " ;
-    std::cout << RESET; 
 
     std::cin >> value;
 
@@ -1678,7 +1671,7 @@ void lp::ReadStringStmt::evaluate()
 
 void lp::EmptyStmt::printAST() 
 {
-  std::cout << "EmptyStmt "  << std::endl;
+  // std::cout << "EmptyStmt "  << std::endl;
 }
 
 void lp::EmptyStmt::evaluate() 
@@ -1930,6 +1923,157 @@ void lp::ForStmt::evaluate()
     }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void lp::CaseStmt::printAST() {
+	std::cout << "CaseStmt: case" << std::endl;
+	std::cout << "\t";
+	std::cout << std::endl;
+}
+
+void lp::CaseStmt::evaluate() {
+
+    std::list<Statement*>::iterator stmtIter;
+
+    for(stmtIter = this->_stmt->begin(); stmtIter != this->_stmt->end(); stmtIter++)
+    {
+        (*stmtIter)->evaluate();
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void lp::SwitchStmt::printAST() {
+	std::cout << "SwitchStmt: switch" << std::endl;
+	std::cout << "\t";
+	std::cout << std::endl;
+}
+
+void lp::SwitchStmt::evaluate() {
+    double condValue = this->_exp->evaluateNumber();
+    bool matched = false;
+
+    for (std::list<lp::CaseStmt *>::iterator it = this->_caselist->begin(); it != this->_caselist->end(); ++it)
+    {
+        double caseValue = (*it)->getExp()->evaluateNumber();
+
+        if (fabs(condValue - caseValue) < ERROR_BOUND)
+        {
+            matched = true;
+            std::list<lp::Statement *> *stmts = (*it)->getStatements();
+
+            for (std::list<lp::Statement *>::iterator s = stmts->begin(); s != stmts->end(); ++s)
+            {
+                (*s)->evaluate();
+            }
+
+            break;
+        }
+    }
+
+    if (!matched && this->_defaultlist != NULL)
+    {
+        for (std::list<lp::Statement *>::iterator s = this->_defaultlist->begin(); s != this->_defaultlist->end(); ++s)
+        {
+            (*s)->evaluate();
+        }
+    }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void lp::RandomNode::printAST() {
+	std::cout << "RandomNode: random" << std::endl;
+	std::cout << "\t";
+	this->_min->printAST();
+	std::cout << "\t";
+	this->_max->printAST();
+	std::cout << std::endl;
+}
+
+int lp::RandomNode::getType() {
+    return NUMBER;
+}
+
+double lp::RandomNode::evaluateNumber() {
+	std::srand(std::time(NULL));
+
+    double minVal, maxVal;
+
+    if(_min->getType() == NUMBER && _max->getType() == NUMBER)
+    {
+        minVal = static_cast<int>(_min->evaluateNumber());
+        maxVal = static_cast<int>(_max->evaluateNumber());
+
+		if (minVal > maxVal) {
+			errorMsg = "Invalid range for random number generation: min is greater than max.";
+			suggestion = "Ensure that the minimum value is less than or equal to the maximum value.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+		}
+
+        int escala = 1000;
+        int minEscalado = static_cast<int>(minVal * escala);
+        int maxEscalado = static_cast<int>(maxVal * escala);
+
+        if (minEscalado > maxEscalado) std::swap(minEscalado, maxEscalado);
+
+        int valorAleatorio = minEscalado + std::rand() % (maxEscalado - minEscalado + 1);
+        return static_cast<double>(valorAleatorio) / escala;
+    }
+	else if(_min->getType() == STRING && _max->getType() == STRING)
+	{
+		// Get the existing symbols for the min and max variables
+		lp::Variable *symbolMin = (lp::Variable *)table.getSymbol(this->_min->evaluateString());
+		lp::Variable *symbolMax = (lp::Variable *)table.getSymbol(this->_max->evaluateString());
+
+		lp::NumericVariable *randomVarMin;
+		lp::NumericVariable *randomVarMax;
+
+		if (symbolMin->getType() == NUMBER)
+		{
+			// If symbol is numeric, use it as the loop variable
+			randomVarMin = (lp::NumericVariable *)symbolMin;
+		}
+
+		if (symbolMax->getType() == NUMBER)
+		{
+			// If symbol is numeric, use it as the loop variable
+			randomVarMax = (lp::NumericVariable *)symbolMax;
+		}
+
+		minVal = randomVarMin->getValue();
+		maxVal = randomVarMax->getValue();
+
+        // Generar un número aleatorio con dos decimales entre minVal y maxVal
+        int escala = 1000; // Para dos decimales
+        int minEscalado = static_cast<int>(minVal * escala);
+        int maxEscalado = static_cast<int>(maxVal * escala);
+
+        if (minEscalado > maxEscalado) std::swap(minEscalado, maxEscalado);
+
+        int valorAleatorio = minEscalado + std::rand() % (maxEscalado - minEscalado + 1);
+        return static_cast<double>(valorAleatorio) / escala;
+    }
+    else
+    {
+        errorMsg = "Invalid types for Place statement.";
+        suggestion = "Ensure both x and y expressions evaluate to numeric values or valid variable names.";
+        semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+                    suggestion);
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1972,6 +2116,65 @@ void lp::ClearScreenStmt::evaluate()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+void lp::PlaceStmt::printAST() 
+{
+  std::cout << "PlaceStmt: place" << std::endl;    
+}
+
+void lp::PlaceStmt::evaluate() 
+{
+  int x;
+  int y;
+
+  if(_x->getType() == NUMBER && _y->getType() == NUMBER)
+  {
+    x = _x->evaluateNumber();
+    y = _y->evaluateNumber();
+    PLACE(x, y);
+  } 
+  else if(_x->getType() == STRING && _y->getType() == STRING)
+  {
+    // Get the existing symbol for the loop variable
+    lp::Variable *symbolX = (lp::Variable *)table.getSymbol(this->_x->evaluateString());
+	lp::Variable *symbolY = (lp::Variable *)table.getSymbol(this->_y->evaluateString());
+
+    lp::NumericVariable * placeVarX;
+    lp::NumericVariable * placeVarY;
+
+    if (symbolX->getType() == NUMBER)
+    {
+        // If symbol is numeric, use it as the loop variable
+        placeVarX = (lp::NumericVariable *)symbolX;
+    }
+
+    if (symbolY->getType() == NUMBER)
+    {
+        // If symbol is numeric, use it as the loop variable
+        placeVarY = (lp::NumericVariable *)symbolY;
+    }
+
+    placeVarX->setValue(this->_x->evaluateNumber());
+    placeVarY->setValue(this->_x->evaluateNumber());
+
+    x = placeVarX->getValue();
+    y = placeVarY->getValue();
+
+    PLACE(x, y);
+  }
+  else
+  {
+	errorMsg = "Invalid types for Place statement.";
+	suggestion = "Ensure both x and y expressions evaluate to numeric values or valid variable names.";
+	semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+				 suggestion);
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void lp::AST::printAST() 
 {

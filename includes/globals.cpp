@@ -10,3 +10,4 @@ std::string fileName = "";
 std::vector<std::string> sourceLines;
 std::string suggestion = "";
 bool interactiveMode;
+std::string currentInteractiveLine = "";

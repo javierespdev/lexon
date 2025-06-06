@@ -13,5 +13,6 @@ extern std::vector<std::string> sourceLines;
 extern std::string suggestion;
 extern FILE * yyin;
 extern bool interactiveMode;
+extern std::string currentInteractiveLine;
 
 #endif // _GLOBALS_HPP

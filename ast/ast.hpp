@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string>
 #include <list>
+#include <sstream>
 
 
 #define ERROR_BOUND 1.0e-6  //!< Error bound for the comparison of real numbers.
@@ -2016,6 +2017,140 @@ class ForStmt : public Statement
   void evaluate();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   CaseStmt
+  \brief   Definition of atributes and methods of CaseStmt class
+  \note    CaseStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class CaseStmt : public Statement 
+{
+ private:
+  ExpNode *_exp;
+  std::list<Statement *> *_stmt;
+
+  public:
+/*!		
+
+*/
+  CaseStmt(ExpNode * exp, std::list<lp::Statement *> *stmt, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_stmt = stmt;
+    this->_lineNumber = lineNumber;
+  }
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+
+  ExpNode* getExp() {
+    return _exp;
+  }
+
+  std::list<Statement *>* getStatements() {
+    return _stmt;
+  }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   SwitchStmt
+  \brief   Definition of atributes and methods of SwitchStmt class
+  \note    SwitchStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class SwitchStmt : public Statement 
+{
+ private:
+  ExpNode *_exp;
+  std::list<lp::CaseStmt *> *_caselist;
+  std::list<lp::Statement *> *_defaultlist;
+
+  public:
+/*!		
+
+*/
+  SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_caselist = caselist;
+    this->_lineNumber = lineNumber;
+  }
+
+  SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, std::list<lp::Statement *> *defaultlist, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_caselist = caselist;
+    this->_lineNumber = lineNumber;
+    this->_defaultlist = defaultlist;
+  }
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   RandomNode
+  \brief   Definition of atributes and methods of RandomNode class
+  \note    RandomNode Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class RandomNode : public ExpNode 
+{
+ private:
+  ExpNode *_min;                         
+  ExpNode *_max;                         
+
+  public:
+
+
+    RandomNode(ExpNode * min, ExpNode * max, int lineNumber)
+	{
+		this->_min = min;
+		this->_max = max;
+		this->_lineNumber = lineNumber;
+    }
+
+    int getType();
+
+    double evaluateNumber();
+
+    void printAST();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -2089,6 +2224,49 @@ class ClearScreenStmt : public Statement
   
 /*!	
   \brief   Evaluate the ClearScreenStmt and clears the terminal screen
+  \return  void
+  \sa      printAST
+*/
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!    
+  \class   PlaceStmt
+  \brief   Definition of attributes and methods of PlaceStmt class
+  \note    PlaceStmt class inherits from Statement and overrides printAST and evaluate
+*/
+class PlaceStmt : public Statement
+{
+ public:
+    ExpNode * _x;
+    ExpNode * _y;
+    int _lineNumber;
+
+/*!        
+  \brief Constructor of PlaceStmt
+  \post  A new ClearScreenStmt object is created
+*/
+inline PlaceStmt(ExpNode * x, ExpNode * y, int lineNumber)
+{
+    this->_x = x;
+    this->_y = y;
+    this->_lineNumber = lineNumber;
+}
+  
+/*!    
+  \brief   Print the AST node for PlaceStmt
+  \return  void
+  \sa      evaluate
+*/
+  void printAST();
+
+  
+/*!    
+  \brief   Evaluate the PlaceStmt and place the terminal screen
   \return  void
   \sa      printAST
 */

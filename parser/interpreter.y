@@ -81,6 +81,8 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
   std::list<lp::Statement *> *stmts;
   lp::Statement *st;
   lp::AST *prog;
+  lp::CaseStmt * caseStm;
+  std::list<lp::CaseStmt *> *caselistStm;
 }
 
 %locations
@@ -89,8 +91,10 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %type <expNode> exp cond
 %type <parameters> listOfExp  restOfListOfExp
 %type <stmts> stmtlist
-%type <st> stmt asgn print read if while block repeat for
+%type <st> stmt asgn print read if while block repeat for place switch
 %type <prog> program
+%type <caseStm> case
+%type <caselistStm> caselist
 
 /* Tokens for control flow constructs */
 %token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT END_SWITCH
@@ -101,13 +105,13 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %token PRINT READ READ_STRING
 
 /* Tokens for block delimiters and separators */
-%token LETFCURLYBRACKET RIGHTCURLYBRACKET SEMICOLON COMMA
+%token LETFCURLYBRACKET RIGHTCURLYBRACKET SEMICOLON COLON COMMA
 
 /* Tokens for screen control / positioning */
 %token CLEAR_SCREEN PLACE
 
 /* Tokens for mathematical functions */
-%token SIN COS SQRT LOG LOG10 EXP INTEGER ABS MOD
+%token RANDOM
 
 /* Tokens with semantic values */
 %token <number> NUMBER         /* Numeric literals */
@@ -179,9 +183,8 @@ stmtlist:  /* empty: epsilon rule */
                         it != $$->end(); 
                         it++)
                 {
-                    (*it)->printAST();
+                    // (*it)->printAST();
                     (*it)->evaluate();
-                    
                 }
 
                 // Delete the AST code, because it has already run in the interactive mode.
@@ -268,11 +271,24 @@ stmt: SEMICOLON  /* Empty statement: ";" */
         // Default action
         // $$ = $1;
       }
-    | CLEAR_SCREEN
+    | CLEAR_SCREEN SEMICOLON
       {
         // Update lineNumber for error control
         lineNumber = @1.first_line;
         $$ = new lp::ClearScreenStmt();
+      }
+    | place SEMICOLON
+      {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
+        $$ = $1;
+      }
+    | switch SEMICOLON
+      {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
+        // Default action
+        // $$ = $1;
       }
 ;
 
@@ -314,6 +330,17 @@ if:
         // To control the interactive mode
         control--;
     }
+;
+
+
+place: 
+      PLACE LPAREN exp COMMA exp RPAREN
+        {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
+            // Create a new place statement node with constant coordinates
+            $$ = new lp::PlaceStmt($3, $5, lineNumber);
+        }
 ;
 
 while:  WHILE controlSymbol cond DO stmtlist END_WHILE
@@ -360,7 +387,40 @@ for:  FOR VARIABLE FROM exp TO exp DO controlSymbol stmtlist END_FOR
             // To control the interactive mode
             control--;
         }
-;
+
+case: CASE exp COLON stmtlist
+    {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
+            // Create a new for with step statement node
+            $$ = new lp::CaseStmt($2, $4, lineNumber);
+    }
+
+caselist:
+    {
+        $$ = new std::list<lp::CaseStmt *>();
+    }
+    | caselist case
+    {
+        $$ = $1;
+        $$->push_front($2);
+    }
+
+switch: SWITCH controlSymbol LPAREN exp RPAREN caselist DEFAULT COLON stmtlist END_SWITCH
+    {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
+            // Create a new switch with default statement node
+            $$ = new lp::SwitchStmt($4, $6, $9, lineNumber);           
+    }
+    | SWITCH controlSymbol LPAREN exp RPAREN caselist END_SWITCH
+    {
+            // Update lineNumber for error control
+            lineNumber = @1.first_line;
+            // Create a new switch with default statement node
+            $$ = new lp::SwitchStmt($4, $6, lineNumber);            
+    }
+
 
 cond:   LPAREN exp RPAREN
         { 
@@ -666,6 +726,13 @@ exp:    NUMBER
           // Create a new "logic negation" node    
              $$ = new lp::NotNode($2, lineNumber);
          }
+    |    RANDOM LPAREN exp COMMA exp RPAREN
+      {
+        // Update lineNumber for error control
+        lineNumber = @1.first_line;
+        
+        $$ = new lp::RandomNode($3, $5, lineNumber);
+      }
 ;
 
 

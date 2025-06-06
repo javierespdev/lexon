@@ -131,6 +131,8 @@ class BuiltinParameter1:public lp::Builtin
 /*!	
 	\name Operators
 */
+
+using Builtin::operator=;
 	
 /*!		
 	\brief  Assignment Operator

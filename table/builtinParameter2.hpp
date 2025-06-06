@@ -127,7 +127,7 @@ class BuiltinParameter2:public lp::Builtin
 	    this->_function = function;
 	}
 
-
+using Builtin::operator=;
 
 /*!	
 	\name Operators

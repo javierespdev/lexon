@@ -35,6 +35,11 @@
 int control = 0; //!< To control the interactive mode in "if" and "while" sentences 
 
 std::string progname; //!<  Program name
+
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_string(const char *str);
+extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
+
 //
 
 
@@ -89,66 +94,82 @@ lp::Table table; //!< Table of Symbols
 
 int main(int argc, char *argv[])
 {
-	/* Option -t needed to debug */
-    /* 1, on; 0, off */
-	yydebug = 0;
- 
- /* 
-   If the input file exists 
-      then 
-           it is set as input device for yylex();
-      otherwise
-            the input device is the keyboard (stdin)
- */
- if (argc == 2) 
- {
-     yyin = fopen(argv[1],"r");
-     fileName = argv[1];
-	 interactiveMode = false;
+    yydebug = 0;
 
-     std::ifstream file(argv[1]);
-     std::string line;
-     while (std::getline(file, line)) {
-        sourceLines.push_back(line);
-     }
-     file.close();
- }
-else
- {
-	interactiveMode = true;
- }
+    // Copy the name of the interpreter 
+    progname = argv[0];
 
- // Copy the name of the interpreter 
-	progname = argv[0];
+    // Number of decimal places
+    std::cout.precision(7);
 
- /* Number of decimal places */ 
- std::cout.precision(7);
+    // Table of symbols initialization
+    init(table);
 
- /* 
-   Table of symbols initialization 
-   Must be written before the recovery sentence: setjmp
- */
-   init(table);
+    // Sets a viable state to continue after a runtime error
+    setjmp(begin);
 
-/* Sets a viable state to continue after a runtime error */
- setjmp(begin);
+    // The name of the function to handle floating-point errors is set
+    signal(SIGFPE, fpecatch);
 
- /* The name of the function to handle floating-point errors is set */
- signal(SIGFPE,fpecatch);
+    if (argc == 2) 
+    {
+        yyin = fopen(argv[1], "r");
+        fileName = argv[1];
+        interactiveMode = false;
 
- // Parser function
-  yyparse();
+        std::ifstream file(argv[1]);
+        std::string line;
+        while (std::getline(file, line)) {
+            sourceLines.push_back(line);
+        }
+        file.close();
 
- if (interactiveMode == false)
- {
+        yyparse();
 
-       root->printAST();  
-       root->evaluate(); 
- }
+        if (root != NULL) {
+            // root->printAST();
+            root->evaluate();
+        }
+    }
+    else
+    {
+        interactiveMode = true;
+        std::string block, line;
+        bool esperando_bloque = false;
+        while (true) {
+            std::cout << (block.empty() ? "> " : (esperando_bloque ? "| " : "> "));
+            if (!std::getline(std::cin, line)) break;
+            if (line.empty() && block.empty()) continue;
 
- /* End of program */
- return 0;
+            if (!block.empty()) block += "\n";
+            block += line;
+            currentInteractiveLine = block;
+            sourceLines.push_back(line); // Guarda solo la línea actual para historial
+
+            // Detecta si estamos esperando un bloque (switch, if, while, for, repeat, {)
+            if ((block.find("switch") != std::string::npos && line != "end_switch") ||
+                (block.find("if") != std::string::npos && line != "end_if") ||
+                (block.find("while") != std::string::npos && line != "end_while") ||
+                (block.find("for") != std::string::npos && line != "end_for") ||
+                (block.find("repeat") != std::string::npos && line != "until") ||
+                (block.find("{") != std::string::npos && line != "}") ) {
+                esperando_bloque = true;
+            }
+            // Si la línea actual es un cierre de bloque, ya puedes parsear
+            if (line == "end_switch" || line == "end_if" || line == "end_while" ||
+                line == "end_for" || line == "until" || line == "}") {
+                esperando_bloque = false;
+            }
+
+            if (!esperando_bloque) {
+                YY_BUFFER_STATE buffer = yy_scan_string((block + "\n").c_str());
+                yyparse();
+                yy_delete_buffer(buffer);
+                block.clear();
+            }
+        }
+        return 0;
+    }
+
+    return 0;
 }
-
-
-
