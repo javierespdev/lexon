@@ -200,8 +200,14 @@ void runtimeWarning(const std::string& filename,
 
   std::cerr << filename << ":" << line << ":" << column << ": " << BIRED <<"Runtime error: " << RESET
             << errorMsg << std::endl;
-  std::cerr << "    " << line << " | "  << sourceLine << std::endl;
-  std::cerr << "      | " << std::endl;
+
+  int lineWidth = countDigits(line);
+  std::cerr << " " << std::setw(lineWidth) << line << " | " << sourceLine << std::endl;
+  std::cerr << " " << std::setw(lineWidth) << ""   << " | " << std::endl;
+  std::cerr << BIYELLOW << "    Suggestion: " << RESET << suggestion << std::endl;
+  currentLine = "";
+
+  exit(EXIT_FAILURE);
 }
 
 /**

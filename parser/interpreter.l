@@ -178,6 +178,21 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                 currentLine += yytext;
                 return POWER;
           }
+"++"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return INCREMENT;
+          }
+"--"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return DECREMENT;
+          }
+"!"        {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return FACTORIAL;
+          }
 
     /****** Grouping symbols ******/
 "("        {
@@ -206,6 +221,16 @@ COMMENT_IN_ONE_LINE         #[^\n]*
                 columnNumber += yyleng;
                 currentLine += yytext;
                 return ASSIGNMENT;
+          }
+"+:="       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return PLUS_ASSIGNMENT;
+          }
+"-:="       {
+                columnNumber += yyleng;
+                currentLine += yytext;
+                return MINUS_ASSIGNMENT;
           }
 
     /****** String operators ******/
@@ -276,6 +301,26 @@ COMMENT_IN_ONE_LINE         #[^\n]*
     columnNumber += yyleng;
     currentLine += yytext;
     return COMMA;
+}
+
+"+:="     {
+    /*
+     * Lexical rule for the "+:=" operator, which is a special assignment operator.
+     * It is treated as a single token.
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return PLUS_ASSIGNMENT;
+}
+
+"-:="     {
+    /*
+     * Lexical rule for the "-:=" operator, which is a special assignment operator.
+     * It is treated as a single token.
+     */
+    columnNumber += yyleng;
+    currentLine += yytext;
+    return MINUS_ASSIGNMENT;
 }
 
     /****** Number ******/

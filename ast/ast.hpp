@@ -147,6 +147,15 @@ class VariableNode : public ExpNode
 		\sa		   getType, printAST, evaluateNumber
 	*/
 	  std::string evaluateString();
+
+	/*!	
+		\brief   Get variable id
+		\return  string
+		\sa		   getType, printAST, evaluateNumber
+	*/
+	  std::string getId() {
+        return _id;
+      }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -496,8 +505,120 @@ class UnaryPlusNode : public NumericUnaryOperatorNode
   double evaluateNumber();
 };
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryIncrementNode
+  \brief   Definition of atributes and methods of UnaryIncrementNode class
+  \note    UnaryIncrementNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryIncrementNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryIncrementNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryIncrementNode is created with the parameter
+*/
+  UnaryIncrementNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryDecrementNode
+  \brief   Definition of atributes and methods of UnaryDecrementNode class
+  \note    UnaryDecrementNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryDecrementNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryDecrementNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryDecrementNode is created with the parameter
+*/
+  UnaryDecrementNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
 
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryFactorialNode
+  \brief   Definition of atributes and methods of UnaryFactorialNode class
+  \note    UnaryFactorialNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryFactorialNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryFactorialNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryFactorialNode is created with the parameter
+*/
+  UnaryFactorialNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1624,6 +1745,100 @@ class AssignmentStmt : public Statement
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/*!	
+  \class   PlusAssignmentStmt
+  \brief   Definition of atributes and methods of PlusAssignmentStmt class
+  \note    PlusAssignmentStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class PlusAssignmentStmt : public Statement 
+{
+ private:
+  std::string _id; 	//!< Name of the variable of the assignment statement
+  ExpNode *_exp; 	//!< Expresssion the assignment statement
+
+ public:
+
+/*!		
+	\brief Constructor of Plus3 
+	\param id: string, variable of the PlusAssignmentStmt
+	\param expression: pointer to ExpNode
+	\post  A new PlusAssignmentStmt is created with the parameters
+	\note  This class is used for the statement "a += b"
+*/
+  PlusAssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
+	{
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for P
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the AssignmentStmt
+	\return  void
+	\sa		   printAST
+*/
+    void evaluate();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
+  \class   MinusAssignmentStmt
+  \brief   Definition of atributes and methods of MinusAssignmentStmt class
+  \note    MinusAssignmentStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class MinusAssignmentStmt : public Statement 
+{
+ private:
+  std::string _id; 	//!< Name of the variable of the assignment statement
+  ExpNode *_exp; 	//!< Expresssion the assignment statement
+
+ public:
+
+/*!		
+	\brief Constructor of MinusAssignmentStmt 
+	\param id: string, variable of the MinusAssignmentStmt
+	\param expression: pointer to ExpNode
+	\post  A new MinusAssignmentStmt is created with the parameters
+	\note  This class is used for the statement "a += b"
+*/
+  MinusAssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
+	{
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for MinusAssignmentStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the MinusAssignmentStmt
+	\return  void
+	\sa		   printAST
+*/
+    void evaluate();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 /*!	
   \class   PrintStmt
   \brief   Definition of atributes and methods of PrintStmt class
@@ -1768,7 +1983,7 @@ class EmptyStmt : public Statement
 
   public:
 /*!		
-	\brief Constructor of  WhileStmt
+	\brief Constructor of  EmptyStmt
 	\post  A new EmptyStmt is created 
 */
   EmptyStmt(int lineNumber)
@@ -1903,6 +2118,50 @@ class WhileStmt : public Statement
   void evaluate();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   DoWhileStmt
+  \brief   Definition of atributes and methods of DoWhileStmt class
+  \note    DoWhileStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class DoWhileStmt : public Statement 
+{
+ private:
+  ExpNode *_cond; //!< Condicion of the do while statement
+  std::list<Statement *> *_stmt; //!< Statements of the body of the do while loop
+
+  public:
+/*!		
+	\brief Constructor of  DoWhileStmt
+	\param condition: ExpNode of the condition
+	\param statement: Statement of the body of the loop 
+	\post  A new DoWhileStmt is created with the parameters
+*/
+  DoWhileStmt(ExpNode *condition, std::list<Statement *> *statement, int lineNumber)
+	{
+		this->_cond = condition;
+		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for DoWhileStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the DoWhileStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -2137,6 +2396,135 @@ class SwitchStmt : public Statement
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/*!	
+  \class   UnaryIncrementStmt
+  \brief   Definition of atributes and methods of UnaryIncrementStmt class
+  \note    UnaryIncrementStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class UnaryIncrementStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to increment
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryIncrementStmt.
+   * @param exp Expression to increment.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryIncrementStmt is created with the provided expression and line number.
+   */
+  UnaryIncrementStmt(ExpNode * exp, int lineNumber)
+  {
+	this->_exp = exp;
+	this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryIncrementStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryIncrementStmt, incrementing the value of the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class UnaryDecrementStmt
+ * @brief Represents a statement that decrements the value of an expression.
+ * @note Inherits from Statement. Adds its own printAST and evaluate methods.
+ */
+class UnaryDecrementStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to decrement
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryDecrementStmt.
+   * @param exp Expression to decrement.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryDecrementStmt is created with the provided expression and line number.
+   */
+  UnaryDecrementStmt(ExpNode * exp, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryDecrementStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryDecrementStmt, decrementing the value of the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class UnaryFactorialStmt
+ * @brief Represents a statement that applies the factorial operation to an expression.
+ * @note Inherits from Statement. Adds its own printAST and evaluate methods.
+ */
+class UnaryFactorialStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to apply factorial
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryFactorialStmt.
+   * @param exp Expression to apply factorial.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryFactorialStmt is created with the provided expression and line number.
+   */
+  UnaryFactorialStmt(ExpNode * exp, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryFactorialStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryFactorialStmt, applying the factorial operation to the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /*!	
   \class   RandomNode
@@ -2288,7 +2676,6 @@ inline PlaceStmt(ExpNode * x, ExpNode * y, int lineNumber)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
 
 /*!	
   \class   AST

@@ -110,7 +110,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %type <expNode> exp cond
 %type <parameters> listOfExp  restOfListOfExp
 %type <stmts> stmtlist
-%type <st> stmt asgn print read if while block repeat for place switch
+%type <st> stmt asgn print read if while block repeat for place switch increment decrement factorial dowhile
 %type <prog> program
 %type <caseStm> case
 %type <caselistStm> caselist
@@ -142,9 +142,9 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %token <string> BUILTIN        /* Builtin function names */
 
 /* Operator precedences and associativity */
-%right ASSIGNMENT              /* Assignment operator (=) */
-%left OR                       /* Logical OR */
-%left AND                      /* Logical AND */
+%right ASSIGNMENT PLUS_ASSIGNMENT MINUS_ASSIGNMENT              /* Assignment operator */
+%left OR                                                        /* Logical OR */
+%left AND                                                       /* Logical AND */
 
 /* Relational operators */
 %nonassoc GREATER_OR_EQUAL LESS_OR_EQUAL GREATER_THAN LESS_THAN EQUAL NOT_EQUAL
@@ -162,7 +162,7 @@ extern lp::AST *root; //!< External root of the abstract syntax tree AST
 %left LPAREN RPAREN
 
 /* Unary operators */
-%nonassoc UNARY
+%nonassoc UNARY INCREMENT DECREMENT FACTORIAL
 
 /* Exponentiation */
 %right POWER
@@ -247,6 +247,11 @@ stmt:
         // While statement
         lineNumber = @1.first_line;
       }
+    | dowhile
+      {
+        // Do-while statement
+        lineNumber = @1.first_line;
+      }
     | repeat
       {
         // Repeat statement
@@ -278,6 +283,21 @@ stmt:
       {
         // Switch statement
         lineNumber = @1.first_line;
+      }
+    | increment SEMICOLON
+      {
+          // Increment statement
+          lineNumber = @1.first_line;
+      }
+    | decrement SEMICOLON
+      {
+          // Decrement statement
+          lineNumber = @1.first_line;
+      }
+    | factorial SEMICOLON
+      {
+          // Factorial statement
+          lineNumber = @1.first_line;
       }
 ;
 
@@ -327,6 +347,15 @@ while: WHILE controlSymbol cond DO stmtlist END_WHILE
         // While loop
         lineNumber = @1.first_line;
         $$ = new lp::WhileStmt($3, $5, lineNumber);
+        control--;
+    }
+;
+
+dowhile: DO controlSymbol stmtlist WHILE cond
+    {
+        // While loop
+        lineNumber = @1.first_line;
+        $$ = new lp::DoWhileStmt($5, $3, lineNumber);
         control--;
     }
 ;
@@ -392,6 +421,33 @@ switch:
     }
 ;
 
+increment:
+    exp INCREMENT
+    {
+        // Increment variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryIncrementStmt($1, lineNumber);
+    }
+;
+
+decrement:
+    exp DECREMENT
+    {
+        // Decrement variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryDecrementStmt($1, lineNumber);
+    }
+;
+
+factorial:
+    exp FACTORIAL
+    {
+        // Factorial variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryFactorialStmt($1, lineNumber);        
+    }
+;
+
 cond:
     LPAREN exp RPAREN
     {
@@ -406,6 +462,18 @@ asgn:
         // Assignment to variable
         lineNumber = @1.first_line;
         $$ = new lp::AssignmentStmt($1, $3, lineNumber);
+    }
+  | VARIABLE PLUS_ASSIGNMENT exp
+    {
+        // Plus assignment
+        lineNumber = @1.first_line;
+        $$ = new lp::PlusAssignmentStmt($1, $3, lineNumber);
+    }
+  | VARIABLE MINUS_ASSIGNMENT exp
+    {
+        // Minus assignment
+        lineNumber = @1.first_line;
+        $$ = new lp::MinusAssignmentStmt($1, $3, lineNumber);
     }
   | VARIABLE ASSIGNMENT asgn
     {
@@ -650,6 +718,24 @@ exp:
         // Random number generation
         lineNumber = @1.first_line;
         $$ = new lp::RandomNode($3, $5, lineNumber);
+    }
+  | exp INCREMENT
+    {
+        // Increment variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryIncrementNode($1, lineNumber);
+    }
+  | exp DECREMENT
+    {
+        // Decrement variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryDecrementNode($1, lineNumber);
+    }
+  | exp FACTORIAL
+    {
+        // Factorial variable
+        lineNumber = @1.first_line;
+        $$ = new lp::UnaryFactorialNode($1, lineNumber);
     }
 ;
 

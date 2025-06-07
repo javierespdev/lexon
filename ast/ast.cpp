@@ -536,6 +536,138 @@ double lp::UnaryPlusNode::evaluateNumber()
   return result;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * @brief Prints the AST representation of a UnaryIncrementNode.
+ */
+void lp::UnaryIncrementNode::printAST() 
+{
+  std::cout << "UnaryIncrementNode: ++"  << std::endl;
+  std::cout << "\t"; 
+  this->_exp->printAST();
+}
+
+/**
+ * @brief Evaluates and returns the numeric value of the unary increment node.
+ * @return The numeric value plus 1.
+ */
+double lp::UnaryIncrementNode::evaluateNumber()
+{
+	double result = 0.0;
+
+	// Ckeck the type of the expression
+	if (this->getType() == NUMBER)
+	{
+		result = this->_exp->evaluateNumber();
+		// Increment the value of the expression
+		result ++;
+	}
+	else
+	{
+		errorMsg = "Expression is not numeric in UnaryIncrementNode.";
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+				 suggestion);
+	}
+
+  return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * @brief Prints the AST representation of a UnaryDecrementNode.
+ */
+void lp::UnaryDecrementNode::printAST() 
+{
+  std::cout << "UnaryDecrementNode: --"  << std::endl;
+  std::cout << "\t"; 
+  this->_exp->printAST();
+}
+
+/**
+ * @brief Evaluates and returns the numeric value of the unary decrement node.
+ * @return The numeric value minus 1.
+ */
+double lp::UnaryDecrementNode::evaluateNumber()
+{
+	double result = 0.0;
+
+	// Ckeck the type of the expression
+	if (this->getType() == NUMBER)
+	{
+		result = this->_exp->evaluateNumber();
+        result--;
+	}
+	else
+	{
+		errorMsg = "Expression is not numeric in UnaryDecrementNode.";
+		suggestion = "Check that the expression is assigned a numeric value before using it in a numeric operation.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+				 suggestion);
+	}
+
+  return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * @brief Prints the AST representation of a UnaryFactorialNode.
+ */
+void lp::UnaryFactorialNode::printAST() 
+{
+  std::cout << "UnaryFactorialNode: !"  << std::endl;
+  std::cout << "\t"; 
+  this->_exp->printAST();
+}
+
+/**
+ * @brief Evaluates and returns the numeric value of the unary plus node.
+ * @return The numeric value.
+ */
+double lp::UnaryFactorialNode::evaluateNumber()
+{
+	double result = 1.0;
+
+	// Check the type of the expression
+	if (this->getType() == NUMBER)
+	{
+		double value = this->_exp->evaluateNumber();
+
+		// Check for valid (non-negative integer) input
+		if (value < 0 || floor(value) != value)
+		{
+			errorMsg = "Factorial is only defined for non-negative integers.";
+			suggestion = "Ensure the expression is a non-negative whole number before applying '!'.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+			return -1;
+		}
+
+		// Compute factorial
+		for (int i = 1; i <= (int)value; ++i)
+			result *= i;
+
+		return result;
+	}
+	else
+	{
+		errorMsg = "Expression is not numeric in UnaryFactorialNode.";
+		suggestion = "Check that the expression is assigned a numeric value before using it in a factorial operation.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+		return -1;
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -698,7 +830,7 @@ double lp::DivisionNode::evaluateNumber()
 		{
 			errorMsg = "Division by zero in DivisionNode.";
 			suggestion = "Check that the divisor is not zero before using it in a division operation.";
-			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+			runtimeWarning(fileName, _lineNumber, columnNumber, errorMsg, 
 					 suggestion);
 		}
 	}
@@ -1888,6 +2020,151 @@ void lp::AssignmentStmt::evaluate()
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Prints the AST representation of a PlusAssignmentStmt.
+ */
+void lp::PlusAssignmentStmt::printAST() 
+{
+  std::cout << "PlusAssignmentStmt: +="  << std::endl;
+  std::cout << "\t";
+  std::cout << this->_id << std::endl;
+  std::cout << "\t";
+
+  // Check the expression
+	if (this->_exp != NULL)
+	{
+	  this->_exp->printAST();
+	std::cout << std::endl;
+  }
+}
+
+/**
+ * @brief Evaluates the plus assignment statement, adding the value of the expression to the variable.
+ */
+void lp::PlusAssignmentStmt::evaluate() 
+{
+	/* Get the identifier in the table of symbols as Variable */
+	lp::Variable *var = (lp::Variable *) table.getSymbol(this->_id);
+
+	// Check the expression
+	if (this->_exp != NULL)
+	{
+		// Check the type of the expression of the asgn
+		switch(this->_exp->getType())
+		{
+			case NUMBER:
+			{
+				double value;
+				// evaluate the expression as NUMBER
+			 	value = this->_exp->evaluateNumber();
+
+				if (var->getType() == NUMBER)
+				{
+					lp::NumericVariable *n = (lp::NumericVariable *) table.getSymbol(this->_id);
+					n->setValue(n->getValue() + value);
+				}
+                else
+                {
+                    errorMsg = "Plus assignment operator requires numeric variable.";
+                    suggestion = "Use a numeric variable before applying '+:=' operator.";
+                    semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+                }
+			}
+			break;
+			default:
+				errorMsg = "Incompatible type of expression for Plus Assignment";
+				
+				suggestion = "Check that the expression is assigned a numeric value before using it in a plus assignment operation.";
+				semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+						 suggestion);
+				break;
+		}
+	}
+	else // this->_exp is NULL
+	{
+		errorMsg = "Expression is NULL for Plus Assignment";
+		
+		suggestion = "Check that the expression is assigned a numeric value before using it in a plus assignment operation.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+				 suggestion);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Prints the AST representation of an AssignmentStmt.
+ */
+void lp::MinusAssignmentStmt::printAST() 
+{
+  std::cout << "MinusAssignmentStmt: -="  << std::endl;
+  std::cout << "\t";
+  std::cout << this->_id << std::endl;
+  std::cout << "\t";
+
+  // Check the expression
+	if (this->_exp != NULL)
+	{
+	  this->_exp->printAST();
+	std::cout << std::endl;
+  }
+}
+
+/**
+ * @brief Evaluates the assignment statement, assigning the value of the expression to the variable.
+ */
+void lp::MinusAssignmentStmt::evaluate() 
+{
+	/* Get the identifier in the table of symbols as Variable */
+	lp::Variable *var = (lp::Variable *) table.getSymbol(this->_id);
+
+	// Check the expression
+	if (this->_exp != NULL)
+	{
+		// Check the type of the expression of the asgn
+		switch(this->_exp->getType())
+		{
+			case NUMBER:
+			{
+				double value;
+				// evaluate the expression as NUMBER
+			 	value = this->_exp->evaluateNumber();
+
+				if (var->getType() == NUMBER)
+				{
+					lp::NumericVariable *n = (lp::NumericVariable *) table.getSymbol(this->_id);
+					n->setValue(n->getValue() - value);
+				}
+                else
+                {
+                    errorMsg = "Minus assignment operator requires numeric variable.";
+                    suggestion = "Use a numeric variable before applying '-:=' operator.";
+                    semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+                }
+			}
+			break;
+			default:
+				errorMsg = "Incompatible type of expression for Minus Assignment";
+				
+				suggestion = "Check that the expression is assigned a numeric value before using it in a minus assignment operation.";
+				semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+						 suggestion);
+				break;
+		}
+	}
+	else // this->_exp is NULL
+	{
+		errorMsg = "Expression is NULL for Minus Assignment";
+		
+		suggestion = "Check that the expression is assigned a numeric value before using it in a minus assignment operation.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, 
+				 suggestion);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -2158,6 +2435,44 @@ void lp::WhileStmt::evaluate()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * @brief Prints the AST representation of a DoWhileStmt.
+ */
+void lp::DoWhileStmt::printAST() 
+{
+  std::cout << "DoWhileStmt: "  << std::endl;
+  // Body of the do-while loop
+  std::cout << "\t";
+  for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) 
+  {
+	  (*stmtIter)->printAST();
+  }
+
+  // Condition
+  std::cout << "\t";
+  this->_cond->printAST();
+
+  std::cout << std::endl;
+}
+
+/**
+ * @brief Evaluates the do-while statement, executing the block at least once and then repeating while the condition is true.
+ */
+void lp::DoWhileStmt::evaluate() 
+{
+  // The body is run at least once, then the condition is checked
+  do
+  {
+	for (std::list<Statement*>::iterator stmtIter = _stmt->begin(); stmtIter != _stmt->end(); ++stmtIter) 
+    {
+        (*stmtIter)->evaluate();
+    }
+  } while (this->_cond->evaluateBool() == true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
  * @brief Prints the AST representation of a RepeatStmt.
  */
 void lp::RepeatStmt::printAST() 
@@ -2402,11 +2717,131 @@ void lp::SwitchStmt::evaluate() {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Prints the AST representation of a UnaryIncrementStmt node.
+ */
+void lp::UnaryIncrementStmt::printAST() {
+	std::cout << "UnaryIncrementStmt: ++" << std::endl;
+	std::cout << "\t";
+	std::cout << this->_exp << std::endl;
+	std::cout << "\t";
+	std::cout << std::endl;
+}
+
+/**
+ * @brief Evaluates the UnaryIncrementStmt, incrementing the value of the variable by 1.
+ */
+void lp::UnaryIncrementStmt::evaluate() {
+	VariableNode* varNode = dynamic_cast<VariableNode*>(this->_exp);
+	if (varNode) {
+		std::string varName = varNode->getId();
+		lp::Variable *var = (lp::Variable *) table.getSymbol(varName);
+		if (var && var->getType() == NUMBER) {
+			lp::NumericVariable *n = (lp::NumericVariable *) var;
+			n->setValue(n->getValue() + 1);
+		} else {
+			errorMsg = "Unary increment operation can only be applied to numeric variables.";
+			suggestion = "Ensure that the variable is numeric before applying unary increment.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+		}
+	} else {
+		errorMsg = "Unary increment can only be applied to variables.";
+		suggestion = "Use a variable as the operand of the increment operator.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/**
+ * @brief Prints the AST representation of a UnaryDecrementStmt node.
+ */
+void lp::UnaryDecrementStmt::printAST() {
+	std::cout << "UnaryDecrementStmt: --" << std::endl;
+	std::cout << "\t";
+	std::cout << this->_exp << std::endl;
+	std::cout << "\t";
+	std::cout << std::endl;
+}
+
+/**
+ * @brief Evaluates the UnaryDecrementStmt, decrementing the value of the variable by 1.
+ */
+void lp::UnaryDecrementStmt::evaluate() {
+	VariableNode* varNode = dynamic_cast<VariableNode*>(this->_exp);
+	if (varNode) {
+		std::string varName = varNode->getId();
+		lp::Variable *var = (lp::Variable *) table.getSymbol(varName);
+		if (var && var->getType() == NUMBER) {
+			lp::NumericVariable *n = (lp::NumericVariable *) var;
+			n->setValue(n->getValue() - 1);
+		} else {
+			errorMsg = "Unary decrement operation can only be applied to numeric variables.";
+			suggestion = "Ensure that the variable is numeric before applying unary decrement.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+		}
+	} else {
+		errorMsg = "Unary decrement can only be applied to variables.";
+		suggestion = "Use a variable as the operand of the decrement operator.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Prints the AST representation of a UnaryFactorialStmt node.
+ */
+void lp::UnaryFactorialStmt::printAST() {
+	std::cout << "UnaryFactorialStmt: !" << std::endl;
+	std::cout << "\t";
+	std::cout << this->_exp << std::endl;
+	std::cout << "\t";
+	std::cout << std::endl;
+}
+
+/**
+ * @brief Evaluates the UnaryFactorialStmt, applying the factorial operation to the variable's value.
+ */
+void lp::UnaryFactorialStmt::evaluate() {
+	VariableNode* varNode = dynamic_cast<VariableNode*>(this->_exp);
+	if (varNode) {
+		std::string varName = varNode->getId();
+		lp::Variable *var = (lp::Variable *) table.getSymbol(varName);
+		if (var && var->getType() == NUMBER) {
+			lp::NumericVariable *n = (lp::NumericVariable *) var;
+			double value = n->getValue();
+			if (value < 0 || value != static_cast<int>(value)) {
+				errorMsg = "Factorial is only defined for non-negative integers.";
+				suggestion = "Ensure the variable is a non-negative integer before applying factorial.";
+				semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+			} else {
+				int result = 1;
+				for (int i = 2; i <= static_cast<int>(value); ++i) {
+					result *= i;
+				}
+				n->setValue(result);
+			}
+		} else {
+			errorMsg = "Unary factorial operation can only be applied to numeric variables.";
+			suggestion = "Ensure that the variable is numeric before applying unary factorial.";
+			semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+		}
+	} else {
+		errorMsg = "Unary factorial can only be applied to variables.";
+		suggestion = "Use a variable as the operand of the factorial operator.";
+		semanticWarning(fileName, _lineNumber, columnNumber, errorMsg, suggestion);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Prints the AST representation of a RandomNode.
@@ -2507,7 +2942,6 @@ double lp::RandomNode::evaluateNumber() {
         return -1;
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
