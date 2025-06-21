@@ -15,11 +15,11 @@
   </tr>
 </table>
 
-## 📚 Grammar Specification
+## Grammar Specification
 
 Lexon is designed to be readable, expressive, and extendable. Below is a complete reference to its grammar, including keywords, syntax rules, and supported operations.
 
-## 🔑 Reserved Keywords and Constants
+## Reserved Keywords and Constants
 
 | Control Statements | Screen Commands | Constants  |
 |--------------------|-----------------|------------|
@@ -48,7 +48,7 @@ Lexon is designed to be readable, expressive, and extendable. Below is a complet
 - **Case-insensitive:** `Print`, `PRINT`, and `print` are equivalent.
 - Reserved words cannot be used as identifiers.
 
-## 🔤 Identifiers
+## Identifiers
 
 - Must begin with a **letter**.
 - Can include **letters**, **digits**, and **underscores** (`_`).
@@ -57,7 +57,7 @@ Lexon is designed to be readable, expressive, and extendable. Below is a complet
   - ✅ `total`, `x_1`, `user_name`
   - ❌ `_var`, `data_`, `value__x`
 
-## 🔢 Numbers
+## Numbers
 
 - Supported formats:
   - Integer: `123`
@@ -65,7 +65,7 @@ Lexon is designed to be readable, expressive, and extendable. Below is a complet
   - Scientific: `3.14e+2`
 - All are treated as numeric values with floating-point support.
 
-## 🔗 Strings
+## Strings
 
 - Defined with single quotes: `'text'`
 - Escape sequences:
@@ -74,7 +74,7 @@ Lexon is designed to be readable, expressive, and extendable. Below is a complet
   - `\'`: single quote
 - Example: `'Line:\n\tIndented'`
 
-## ➕ Operators
+## Operators
 
 ### Arithmetic
 | Operation     | Symbol  | Description         |
@@ -103,7 +103,7 @@ Lexon is designed to be readable, expressive, and extendable. Below is a complet
 ### Logical
 - `or`, `and`, `not`
 
-## 📦 Requirements
+## Requirements
 
 To build and run Lexon, make sure the following are installed:
 
@@ -119,7 +119,7 @@ sudo apt update
 sudo apt install g++ flex bison make
 ```
 
-## 🚀 Running the Interpreter
+## Running the Interpreter
 
 To compile and execute a Lexon program:
 
@@ -127,7 +127,7 @@ To compile and execute a Lexon program:
 git clone https://github.com/yourusername/lexon.git
 cd lexon
 make
-./interpreter.exe your_program.p
+./interpreter.exe program.p
 ```
 
 For interactive mode:
