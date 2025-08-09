@@ -1,23 +1,19 @@
-<table>
-  <tr>
-    <td>
+<div align="center">
+  <img src="docs/images/lexon.png" alt="Lexon Logo" width="200" />
+</div>
 
-<h1>Lexon</h1>
+<div align="center">
+  <em><b>Lexon</b> is a lightweight and efficient pseudocode interpreter implemented in C++ using Flex and Bison.</em>
+</div>
 
-<p><strong>Lexon</strong> is a lightweight pseudocode interpreter implemented in C++ using Flex and Bison. It supports intuitive syntax, typed variables, screen commands, conditionals, loops, and more.</p>
+<br>
 
-</td>
-<td align="right" valign="top">
-  <div style="margin-top:90px;">
-    <img src="docs/images/lexon.png" alt="Lexon Logo" width="300"/>
-  </div>
-</td>
-  </tr>
-</table>
-
-## Grammar Specification
-
-Lexon is designed to be readable, expressive, and extendable. Below is a complete reference to its grammar, including keywords, syntax rules, and supported operations.
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-brightgreen" alt="Project Status" />
+  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status" />
+  <img src="https://img.shields.io/badge/tests-passing-brightgreen.svg" alt="Tests" />
+  <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License" />
+</p>
 
 ## Reserved Keywords and Constants
 
@@ -124,7 +120,7 @@ sudo apt install g++ flex bison make
 To compile and execute a Lexon program:
 
 ```bash
-git clone https://github.com/yourusername/lexon.git
+git clone https://github.com/javierespdev/lexon.git
 cd lexon
 make
 ./interpreter.exe program.p
@@ -135,3 +131,7 @@ For interactive mode:
 ```bash
 ./interpreter.exe
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
