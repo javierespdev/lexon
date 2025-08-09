@@ -1,53 +1,48 @@
-# Makefile for ast
+# Makefile for Lexon AST module
+
 NAME=ast
 
-# Compiler
+# C++ compiler
 CPP = g++
 
-# Directives for the compiler
-# -c: the output is an object file, the linking stage is not done.
-# -g: debug
-# -Wall: all warnings
-# -ansi: standard language
-# -02: optimization level
-CFLAGS = -c -g  -Wall -ansi -O2
+# Compiler flags:
+# -c: Compile only, do not link
+# -g: Debug info
+# -Wall: Enable all warnings
+# -ansi: Use ANSI standard
+# -O2: Optimization level 2
+CFLAGS = -c -g -Wall -ansi -O2
 
-# Objects
-OBJECTS= $(NAME).o
+# Object files to build
+OBJECTS = $(NAME).o
 
-# Includes
+# Project header dependencies
 INCLUDES = $(NAME).hpp \
-			../parser/interpreter.tab.h \
-			../includes/macros.hpp ../error/error.hpp \
-			../table/table.hpp  ../table/numericConstant.hpp \
-			../table/builtinParameter0.hpp ../table/builtinParameter1.hpp ../table/builtinParameter2.hpp
+	../parser/interpreter.tab.h \
+	../includes/macros.hpp ../error/error.hpp \
+	../table/table.hpp ../table/numericConstant.hpp \
+	../table/builtinParameter0.hpp ../table/builtinParameter1.hpp ../table/builtinParameter2.hpp
 
-# Predefined macros 
-#
-# $@: name of the target
-# $^: all the dependencies
+# Predefined macros:
+# $@: target name
+# $^: all dependencies
 # $<: first dependency
-#
+
 #######################################################
-
-# Main rule
-
+# Main build rule: build all object files
 all: $(OBJECTS)
 
-
-# Error recovery functions 
+#######################################################
+# Build the AST object file
 $(NAME).o: $(NAME).cpp $(INCLUDES)
-	@echo "Compiling " $<
+	@echo "Compiling $<"
 	@$(CPP) $(CFLAGS) $<
 	@echo
 
-
-
 #######################################################
-# Auxiliary files directory are deleted
-clean: 
+# Clean up all generated files in the ast directory
+clean:
 	@echo
 	@echo "Deleting in subdirectory ast"
-	@rm -f $(OBJECTS) *~ 
+	@rm -f $(OBJECTS) *~
 	@echo
-

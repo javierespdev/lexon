@@ -2,18 +2,19 @@
 	\file    ast.hpp
 	\brief   Declaration of AST class
 	\author  
-	\date    2022-10-07
+	\date    2025-06-06
 	\version 1.0
 */
 
 #ifndef _AST_HPP_
 #define _AST_HPP_
 
+// Standard C++ libraries
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <list>
-
+#include <sstream>
 
 #define ERROR_BOUND 1.0e-6  //!< Error bound for the comparison of real numbers.
 
@@ -36,6 +37,7 @@ namespace lp
 		\sa		   printAST, evaluateNumber, evaluateBool
 	*/
     virtual int getType() = 0;
+    int _lineNumber; //!< Line number for error
 
 
 	/*!	
@@ -69,6 +71,17 @@ namespace lp
 		return false;
 	}
 
+	/*!	
+		\brief   Evaluate the expression as string
+		\warning Virtual function: could be redefined in the heir classes
+		\return  string
+		\sa		 getType, printAST, evaluateString
+	*/
+    virtual std::string evaluateString()
+	{
+		return "";
+	}
+
 };
 
 
@@ -87,15 +100,17 @@ class VariableNode : public ExpNode
 
 	public:
 
-	/*!		
+	/*!   
 		\brief Constructor of VariableNode
 		\param value: double
+		\param lineNumber: int
 		\post  A new NumericVariableNode is created with the name of the parameter
 		\note  Inline function
 	*/
-	  VariableNode(std::string const & value)
+	  VariableNode(std::string const & value, int lineNumber)
 		{
 			this->_id = value; 
+			this->_lineNumber = lineNumber;
 		}
 
 	/*!	
@@ -126,6 +141,21 @@ class VariableNode : public ExpNode
 	*/
 	  bool evaluateBool();
 
+	/*!	
+		\brief   Evaluate the Variable as STRING
+		\return  string
+		\sa		   getType, printAST, evaluateNumber
+	*/
+	  std::string evaluateString();
+
+	/*!	
+		\brief   Get variable id
+		\return  string
+		\sa		   getType, printAST, evaluateNumber
+	*/
+	  std::string getId() {
+        return _id;
+      }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,11 +176,13 @@ class ConstantNode : public ExpNode
 	/*!		
 		\brief Constructor of ConstantNode
 		\param value: double
+		\param lineNumber: int
 		\post  A new ConstantNode is created with the name of the parameter
 	*/
-	  ConstantNode(std::string value)
+	  ConstantNode(std::string value, int lineNumber)
 		{
 			this->_id = value; 
+			this->_lineNumber = lineNumber;
 		}
 
 	/*!	
@@ -182,7 +214,8 @@ class ConstantNode : public ExpNode
 	  bool evaluateBool();
 };
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -204,12 +237,14 @@ class NumberNode : public ExpNode
 /*!		
 	\brief Constructor of NumberNode
 	\param value: double
+	\param lineNumber: int
 	\post  A new NumberNode is created with the value of the parameter
 	\note  Inline function
 */
-  NumberNode(double value)
+  NumberNode(double value, int lineNumber)
 	{
 	    this->_number = value;
+	    this->_lineNumber = lineNumber;
 	}
 
 	/*!	
@@ -234,7 +269,54 @@ class NumberNode : public ExpNode
 	double evaluateNumber();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/**
+ * @class StringNode
+ * @brief Definition of attributes and methods of StringNode class
+ * @note StringNode publicly inherits from ExpNode.
+ */
+class StringNode : public ExpNode
+{
+private:
+    std::string _string; //!< \brief Stored string value of this node
+
+public:
+    /*!
+        \brief Constructor of StringNode
+        \param value: The string to store in this node
+        \post  A StringNode object is created holding the given string
+        \note  Inline implementation
+    */
+    StringNode(std::string value, int lineNumber)
+    {
+        this->_string = value;
+        this->_lineNumber = lineNumber;
+    }
+
+    /*!
+        \brief   Returns the type of this expression node (STRING)
+        \return  int representing the node type
+        \sa      printAST()
+    */
+    int getType();
+
+    /*!
+        \brief   Prints the string value of this node
+        \return  void
+        \sa      evaluateString()
+    */
+    void printAST();
+
+    /*!
+        \brief   Evaluates and returns the stored string
+        \return  std::string containing the node's string value
+        \sa      getType()
+    */
+    std::string evaluateString();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,9 +341,10 @@ class UnaryOperatorNode : public ExpNode
 	\post  A new OperatorNode is created with the parameters
 	\note  Inline function
 */
-  UnaryOperatorNode(ExpNode *expression)
+  UnaryOperatorNode(ExpNode *expression, int lineNumber)
 	{
 		this->_exp = expression;
+		this->_lineNumber = lineNumber;
 	}
 
 	/*!	
@@ -295,7 +378,7 @@ class NumericUnaryOperatorNode : public UnaryOperatorNode
 	\post  A new NumericUnaryOperatorNode is created with the parameters
 	\note  Inline function
 */
-  NumericUnaryOperatorNode(ExpNode *expression): UnaryOperatorNode(expression)
+  NumericUnaryOperatorNode(ExpNode *expression, int lineNumber): UnaryOperatorNode(expression, lineNumber)
 	{
 		// Empty
 	}
@@ -329,7 +412,7 @@ class LogicalUnaryOperatorNode : public UnaryOperatorNode
 	\post  A new NumericUnaryOperatorNode is created with the parameters
 	\note  Inline function
 */
-  LogicalUnaryOperatorNode(ExpNode *expression): UnaryOperatorNode(expression)
+  LogicalUnaryOperatorNode(ExpNode *expression, int lineNumber): UnaryOperatorNode(expression, lineNumber)
 	{
 		// Empty
 	}
@@ -364,7 +447,7 @@ class UnaryMinusNode : public NumericUnaryOperatorNode
 	\post  A new UnaryMinusNode is created with the parameter
 	\note  Inline function: the NumericUnaryOperatorNode's constructor is used ad member initializer
 */
-  UnaryMinusNode(ExpNode *expression): NumericUnaryOperatorNode(expression) 
+  UnaryMinusNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -402,7 +485,83 @@ class UnaryPlusNode : public NumericUnaryOperatorNode
 	\param expression: pointer to ExpNode
 	\post  A new UnaryPlusNode is created with the parameter
 */
-  UnaryPlusNode(ExpNode *expression): NumericUnaryOperatorNode(expression) 
+  UnaryPlusNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryIncrementNode
+  \brief   Definition of atributes and methods of UnaryIncrementNode class
+  \note    UnaryIncrementNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryIncrementNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryIncrementNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryIncrementNode is created with the parameter
+*/
+  UnaryIncrementNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryDecrementNode
+  \brief   Definition of atributes and methods of UnaryDecrementNode class
+  \note    UnaryDecrementNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryDecrementNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryDecrementNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryDecrementNode is created with the parameter
+*/
+  UnaryDecrementNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -423,7 +582,43 @@ class UnaryPlusNode : public NumericUnaryOperatorNode
 };
 
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
+/*!	
+  \class   UnaryFactorialNode
+  \brief   Definition of atributes and methods of UnaryFactorialNode class
+  \note    UnaryFactorialNode Class publicly inherits from NumericUnaryOperatorNode class
+*/
+class UnaryFactorialNode : public NumericUnaryOperatorNode 
+{
+
+ public:
+
+/*!		
+	\brief Constructor of UnaryFactorialNode uses NumericUnaryOperatorNode's constructor as member initializer
+	\param expression: pointer to ExpNode
+	\post  A new UnaryFactorialNode is created with the parameter
+*/
+  UnaryFactorialNode(ExpNode *expression, int lineNumber): NumericUnaryOperatorNode(expression, lineNumber) 
+	{
+		// empty
+	} 
+
+/*!
+	\brief   Print the AST for expression
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the expression
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,10 +642,11 @@ class OperatorNode : public ExpNode
 		\param R: pointer to ExpNode
 		\post  A new OperatorNode is created with the parameters
 	*/
-    OperatorNode(ExpNode *L, ExpNode *R)
+    OperatorNode(ExpNode *L, ExpNode *R, int lineNumber)
 	{
 	    this->_left  = L;
     	this->_right = R;
+        this->_lineNumber = lineNumber;
 	}
 
 };
@@ -476,9 +672,9 @@ class NumericOperatorNode : public OperatorNode
 		\param R: pointer to ExpNode
 		\post  A new NumericOperatorNode is created with the parameters
 	*/
-    NumericOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    NumericOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
-		//	Empty
+		// Empty
 	}
 
 	/*!	
@@ -489,6 +685,36 @@ class NumericOperatorNode : public OperatorNode
 };
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!
+  \class   StringOperatorNode
+  \brief   Definition of attributes and methods of StringOperatorNode class
+  \note    StringOperatorNode Class publicly inherits from OperatorNode class
+  \warning Abstract class, because it does not redefine the printAST method of ExpNode
+*/
+class StringOperatorNode : public OperatorNode 
+{
+	public:
+
+	/*!
+		\brief Constructor of StringOperatorNode uses OperatorNode's constructor as members initializer
+		\param L: pointer to ExpNode
+		\param R: pointer to ExpNode
+		\post  A new StringOperatorNode is created with the parameters
+	*/
+	StringOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L, R, lineNumber) 
+	{
+		// Empty
+	}
+
+	/*!
+		\brief   Get the type of the children expressions
+		\return  int
+	*/
+	int getType();
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -508,7 +734,7 @@ public:
 	\param R: pointer to ExpNode
 	\post  A new RelationalOperatorNode is created with the parameters
 */
-    RelationalOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    RelationalOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
 		//	Empty
 	}
@@ -541,7 +767,7 @@ class LogicalOperatorNode : public OperatorNode
 		\param R: pointer to ExpNode
 		\post  A new NumericOperatorNode is created with the parameters
 	*/
-    LogicalOperatorNode(ExpNode *L, ExpNode *R): OperatorNode(L,R) 
+    LogicalOperatorNode(ExpNode *L, ExpNode *R, int lineNumber): OperatorNode(L,R,lineNumber) 
 	{
 		//	Empty
 	}
@@ -573,7 +799,7 @@ class PlusNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new PlusNode is created with the parameter
 */
-  PlusNode(ExpNode *L, ExpNode *R) : NumericOperatorNode(L,R) 
+  PlusNode(ExpNode *L, ExpNode *R, int lineNumber) : NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -613,7 +839,7 @@ class MinusNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new MinusNode is created with the parameter
 */
-  MinusNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  MinusNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -654,7 +880,7 @@ class MultiplicationNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new MultiplicationNode is created with the parameter
 */
-  MultiplicationNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  MultiplicationNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -691,7 +917,7 @@ class DivisionNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new DivisionNode is created with the parameter
 */
-  DivisionNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  DivisionNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -708,6 +934,81 @@ class DivisionNode : public NumericOperatorNode
 	\sa		   printAST
 */
   double evaluateNumber();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   IntegerDivisionNode
+  \brief   Definition of atributes and methods of IntegerDivisionNode class
+  \note    IntegerDivisionNode Class publicly inherits from NumericOperatorNode class 
+		   and adds its own printAST and evaluate functions
+*/
+class IntegerDivisionNode : public NumericOperatorNode 
+{
+  public:
+/*!		
+	\brief Constructor of IntegerDivisionNode uses NumericOperatorNode's constructor as members initializer
+	\param L: pointer to ExpNode
+	\param R: pointer to ExpNode
+	\post  A new IntegerDivisionNode is created with the parameter
+*/
+  IntegerDivisionNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
+  {
+		// Empty
+  }
+/*!
+	\brief   printAST the IntegerDivisionNode
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the IntegerDivisionNode
+	\return  double
+	\sa		   printAST
+*/
+  double evaluateNumber();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   ConcatenationNode
+  \brief   Definition of atributes and methods of ConcatenationNode class
+  \note    ConcatenationNode Class publicly inherits from ConcatenationNode class 
+		   and adds its own printAST and evaluate functions
+*/
+class ConcatenationNode : public StringOperatorNode 
+{
+  public:
+/*!		
+	\brief Constructor of ConcatenationNode uses ConcatenationNode's constructor as members initializer
+	\param L: pointer to ExpNode
+	\param R: pointer to ExpNode
+	\post  A new IntegerDivisionNode is created with the parameter
+*/
+  ConcatenationNode(ExpNode *L, ExpNode *R, int lineNumber): StringOperatorNode(L,R,lineNumber) 
+  {
+		// Empty
+  }
+/*!
+	\brief   printAST the ConcatenationNode
+	\return  void
+	\sa		   evaluateNumber
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the ConcatenationNode
+	\return  double
+	\sa		   printAST
+*/
+  std::string evaluateString();
 };
 
 
@@ -729,7 +1030,7 @@ class ModuloNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new ModuloNode is created with the parameter
 */
-  ModuloNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  ModuloNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -767,7 +1068,7 @@ class PowerNode : public NumericOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new PowerNode is created with the parameter
 */
-  PowerNode(ExpNode *L, ExpNode *R): NumericOperatorNode(L,R) 
+  PowerNode(ExpNode *L, ExpNode *R, int lineNumber): NumericOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -807,9 +1108,10 @@ class BuiltinFunctionNode : public ExpNode
 	\param id: string, name of the BuiltinFunction
 	\post  A new BuiltinFunctionNode is created with the parameter
 */
-  BuiltinFunctionNode(std::string id)
+  BuiltinFunctionNode(std::string id, int lineNumber)
 	{
 		this->_id = id;
+		this->_lineNumber = lineNumber;
 	}
 
 };
@@ -835,7 +1137,7 @@ class BuiltinFunctionNode_0 : public BuiltinFunctionNode
 	\param id: string, name of the BuiltinFunction
 	\post  A new BuiltinFunctionNode_2 is created with the parameter
 */
-  BuiltinFunctionNode_0(std::string id): BuiltinFunctionNode(id)
+  BuiltinFunctionNode_0(std::string id, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		// 
 	}
@@ -888,7 +1190,7 @@ class BuiltinFunctionNode_1: public BuiltinFunctionNode
 	\param expression: pointer to ExpNode, argument of the BuiltinFunctionNode_1
 	\post  A new BuiltinFunctionNode_1 is created with the parameters
 */
-  BuiltinFunctionNode_1(std::string id, ExpNode *expression): BuiltinFunctionNode(id)
+  BuiltinFunctionNode_1(std::string id, ExpNode *expression, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		this->_exp = expression;
 	}
@@ -941,7 +1243,7 @@ class BuiltinFunctionNode_2 : public BuiltinFunctionNode
 		\param expression2: pointer to ExpNode, second argument of the BuiltinFunctionNode
 		\post  A new BuiltinFunctionNode_2 is created with the parameters
 	*/
-	  BuiltinFunctionNode_2(std::string id,ExpNode *expression1,ExpNode *expression2): BuiltinFunctionNode(id)
+	  BuiltinFunctionNode_2(std::string id,ExpNode *expression1,ExpNode *expression2, int lineNumber): BuiltinFunctionNode(id, lineNumber)
 	{
 		this->_exp1 = expression1;
 		this->_exp2 = expression2;
@@ -992,7 +1294,7 @@ class GreaterThanNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new GreaterThanNode is created with the parameter
 */
-  GreaterThanNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  GreaterThanNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1035,7 +1337,7 @@ class GreaterOrEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new GreaterOrEqualNode is created with the parameter
 */
-  GreaterOrEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  GreaterOrEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1076,7 +1378,7 @@ class LessThanNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new LessThanNode is created with the parameter
 */
-  LessThanNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  LessThanNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1117,7 +1419,7 @@ class LessOrEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new LessOrEqualNode is created with the parameter
 */
-  LessOrEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  LessOrEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1158,7 +1460,7 @@ class EqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new EqualNode is created with the parameter
 */
-  EqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  EqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1199,7 +1501,7 @@ class NotEqualNode : public RelationalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new NotEqualNode is created with the parameter
 */
-  NotEqualNode(ExpNode *L, ExpNode *R): RelationalOperatorNode(L,R) 
+  NotEqualNode(ExpNode *L, ExpNode *R, int lineNumber): RelationalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1241,7 +1543,7 @@ class AndNode : public LogicalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new AndNode is created with the parameter
 */
-  AndNode(ExpNode *L, ExpNode *R): LogicalOperatorNode(L,R) 
+  AndNode(ExpNode *L, ExpNode *R, int lineNumber): LogicalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1284,7 +1586,7 @@ class OrNode : public LogicalOperatorNode
 	\param R: pointer to ExpNode
 	\post  A new AndNode is created with the parameter
 */
-  OrNode(ExpNode *L, ExpNode *R): LogicalOperatorNode(L,R) 
+  OrNode(ExpNode *L, ExpNode *R, int lineNumber): LogicalOperatorNode(L,R,lineNumber) 
   {
 		// Empty
   }
@@ -1293,14 +1595,14 @@ class OrNode : public LogicalOperatorNode
 	\brief   Print the AST for OrNode
 	\return  void
 	\sa		   evaluateBool
-*/
+	*/
   void printAST();
 
 /*!	
 	\brief   Evaluate the OrNode
 	\return  bool
 	\sa		 printAST()
-*/
+	*/
   bool evaluateBool();
 };
 
@@ -1324,7 +1626,7 @@ class NotNode : public LogicalUnaryOperatorNode
 	\param expression: pointer to ExpNode
 	\post  A new NotNode is created with the parameter
 */
-  NotNode(ExpNode *expression): LogicalUnaryOperatorNode(expression) 
+  NotNode(ExpNode *expression, int lineNumber): LogicalUnaryOperatorNode(expression, lineNumber) 
 	{
 		// empty
 	} 
@@ -1356,6 +1658,7 @@ class NotNode : public LogicalUnaryOperatorNode
 
 class Statement {
  public:
+    int _lineNumber; //!< Line number for error
 
 /*!	
 	\brief   Print the AST for Statement
@@ -1402,9 +1705,10 @@ class AssignmentStmt : public Statement
 	\param expression: pointer to ExpNode
 	\post  A new AssignmentStmt is created with the parameters
 */
-  AssignmentStmt(std::string id, ExpNode *expression): _id(id), _exp(expression)
+  AssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
 	{
 		this->_asgn = NULL; 
+		this->_lineNumber = lineNumber;
 	}
 
 /*!		
@@ -1415,9 +1719,10 @@ class AssignmentStmt : public Statement
 	\note  Allow multiple assigment -> a = b = 2 
 */
 
-  AssignmentStmt(std::string id, AssignmentStmt *asgn): _id(id), _asgn(asgn)
+  AssignmentStmt(std::string id, AssignmentStmt *asgn, int lineNumber): _id(id), _asgn(asgn)
 	{
 		this->_exp = NULL;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1430,6 +1735,100 @@ class AssignmentStmt : public Statement
 
 /*!	
 	\brief   Evaluate the AssignmentStmt
+	\return  void
+	\sa		   printAST
+*/
+    void evaluate();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
+  \class   PlusAssignmentStmt
+  \brief   Definition of atributes and methods of PlusAssignmentStmt class
+  \note    PlusAssignmentStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class PlusAssignmentStmt : public Statement 
+{
+ private:
+  std::string _id; 	//!< Name of the variable of the assignment statement
+  ExpNode *_exp; 	//!< Expresssion the assignment statement
+
+ public:
+
+/*!		
+	\brief Constructor of Plus3 
+	\param id: string, variable of the PlusAssignmentStmt
+	\param expression: pointer to ExpNode
+	\post  A new PlusAssignmentStmt is created with the parameters
+	\note  This class is used for the statement "a += b"
+*/
+  PlusAssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
+	{
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for P
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the AssignmentStmt
+	\return  void
+	\sa		   printAST
+*/
+    void evaluate();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
+  \class   MinusAssignmentStmt
+  \brief   Definition of atributes and methods of MinusAssignmentStmt class
+  \note    MinusAssignmentStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class MinusAssignmentStmt : public Statement 
+{
+ private:
+  std::string _id; 	//!< Name of the variable of the assignment statement
+  ExpNode *_exp; 	//!< Expresssion the assignment statement
+
+ public:
+
+/*!		
+	\brief Constructor of MinusAssignmentStmt 
+	\param id: string, variable of the MinusAssignmentStmt
+	\param expression: pointer to ExpNode
+	\post  A new MinusAssignmentStmt is created with the parameters
+	\note  This class is used for the statement "a += b"
+*/
+  MinusAssignmentStmt(std::string id, ExpNode *expression, int lineNumber): _id(id), _exp(expression)
+	{
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for MinusAssignmentStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the MinusAssignmentStmt
 	\return  void
 	\sa		   printAST
 */
@@ -1458,9 +1857,10 @@ class PrintStmt: public Statement
 	\param expression: pointer to ExpNode
 	\post  A new PrintStmt is created with the parameter
 */
-  PrintStmt(ExpNode *expression)
+  PrintStmt(ExpNode *expression, int lineNumber)
 	{
 		this->_exp = expression;
+		this->_lineNumber = lineNumber;
 	}
 
 /*!
@@ -1501,9 +1901,10 @@ class ReadStmt : public Statement
 	\param id: string, name of the variable of the ReadStmt
 	\post  A new ReadStmt is created with the parameter
 */
-  ReadStmt(std::string id)
+  ReadStmt(std::string id, int lineNumber)
 	{
 		this->_id = id;
+		this->_lineNumber = lineNumber;
 	}
 
 /*!
@@ -1527,6 +1928,50 @@ class ReadStmt : public Statement
 
 
 /*!	
+  \class   ReadStringStmt
+  \brief   Definition of atributes and methods of ReadStringStmt class
+  \note    ReadStringStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class ReadStringStmt : public Statement 
+{
+  private:
+	std::string _id; //!< Name of the ReadStringStmt
+	
+
+  public:
+/*!		
+	\brief Constructor of ReadStringStmt
+	\param id: string, name of the variable of the ReadStringStmt
+	\post  A new ReadStringStmt is created with the parameter
+*/
+  ReadStringStmt(std::string id, int lineNumber)
+	{
+		this->_id = id;
+		this->_lineNumber = lineNumber;
+	}
+
+/*!
+	\brief   Print the AST for ReadStringStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the ReadStringStmt
+	\return  void
+	\sa		   printAST
+*/
+  void evaluate();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
   \class   EmptyStmt
   \brief   Definition of atributes and methods of EmptyStmt class
   \note    EmptyStmt Class publicly inherits from Statement class 
@@ -1538,12 +1983,13 @@ class EmptyStmt : public Statement
 
   public:
 /*!		
-	\brief Constructor of  WhileStmt
+	\brief Constructor of  EmptyStmt
 	\post  A new EmptyStmt is created 
 */
-  EmptyStmt()
+  EmptyStmt(int lineNumber)
 	{
 		// Empty
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1566,7 +2012,6 @@ class EmptyStmt : public Statement
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// NEW in example 17
 
 /*!	
   \class   IfStmt
@@ -1578,8 +2023,8 @@ class IfStmt : public Statement
 {
  private:
   ExpNode *_cond;    //!< Condicion of the if statement
-  Statement *_stmt1; //!< Statement of the consequent
-  Statement *_stmt2; //!< Statement of the alternative
+  std::list<Statement *> *_stmt1; //!< Statement of the consequent
+  std::list<Statement *> *_stmt2; //!< Statement of the alternative
 
   public:
 /*!		
@@ -1588,11 +2033,12 @@ class IfStmt : public Statement
 	\param statement1: Statement of the consequent
 	\post  A new IfStmt is created with the parameters
 */
-  IfStmt(ExpNode *condition, Statement *statement1)
+  IfStmt(ExpNode *condition, std::list<Statement *> *statement1, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt1 = statement1;
-		this->_stmt2 = NULL;
+        this->_stmt2 = NULL;
+        this->_lineNumber = lineNumber;
 	}
 
 
@@ -1603,11 +2049,12 @@ class IfStmt : public Statement
 	\param statement2: Statement of the alternative
 	\post  A new IfStmt is created with the parameters
 */
-  IfStmt(ExpNode *condition, Statement *statement1, Statement *statement2)
+  IfStmt(ExpNode *condition, std::list<Statement *> *statement1, std::list<Statement *> *statement2, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt1 = statement1;
 		this->_stmt2 = statement2;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1626,13 +2073,8 @@ class IfStmt : public Statement
   void evaluate();
 };
 
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// NEW in example 17
 
 /*!	
   \class   WhileStmt
@@ -1644,7 +2086,7 @@ class WhileStmt : public Statement
 {
  private:
   ExpNode *_cond; //!< Condicion of the while statement
-  Statement *_stmt; //!< Statement of the body of the while loop
+  std::list<Statement *> *_stmt; //!< Statements of the body of the while loop
 
   public:
 /*!		
@@ -1653,10 +2095,11 @@ class WhileStmt : public Statement
 	\param statement: Statement of the body of the loop 
 	\post  A new WhileStmt is created with the parameters
 */
-  WhileStmt(ExpNode *condition, Statement *statement)
+  WhileStmt(ExpNode *condition, std::list<Statement *> *statement, int lineNumber)
 	{
 		this->_cond = condition;
 		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
 	}
 
 
@@ -1675,11 +2118,445 @@ class WhileStmt : public Statement
   void evaluate();
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   DoWhileStmt
+  \brief   Definition of atributes and methods of DoWhileStmt class
+  \note    DoWhileStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class DoWhileStmt : public Statement 
+{
+ private:
+  ExpNode *_cond; //!< Condicion of the do while statement
+  std::list<Statement *> *_stmt; //!< Statements of the body of the do while loop
+
+  public:
+/*!		
+	\brief Constructor of  DoWhileStmt
+	\param condition: ExpNode of the condition
+	\param statement: Statement of the body of the loop 
+	\post  A new DoWhileStmt is created with the parameters
+*/
+  DoWhileStmt(ExpNode *condition, std::list<Statement *> *statement, int lineNumber)
+	{
+		this->_cond = condition;
+		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for DoWhileStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the DoWhileStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   RepeatStmt
+  \brief   Definition of atributes and methods of RepeatStmt class
+  \note    RepeatStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class RepeatStmt : public Statement 
+{
+ private:
+  ExpNode *_cond; //!< Condicion of the Repeat statement
+  std::list<Statement *> *_stmt; //!< Statements of the body of the Repeat loop
+
+  public:
+/*!		
+	\brief Constructor of  RepeatStmt
+	\param condition: ExpNode of the condition
+	\param statement: Statement of the body of the loop 
+	\post  A new RepeatStmt is created with the parameters
+*/
+  RepeatStmt(std::list<Statement *> *statement, ExpNode *condition, int lineNumber)
+	{
+		this->_cond = condition;
+		this->_stmt = statement;
+		this->_lineNumber = lineNumber;
+	}
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-// NEW in example 17
+
+/*!	
+  \class   ForStmt
+  \brief   Definition of atributes and methods of ForStmt class
+  \note    ForStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class ForStmt : public Statement 
+{
+ private:
+  std::string _id;                        //!< Identifier (loop variable) of the For statement
+  ExpNode *_from;                         //!< Initial value expression
+  ExpNode *_to;                           //!< Final value expression
+  ExpNode *_step;                         //!< Step expression
+  std::list<Statement *> *_stmt;          //!< Statements in the body of the For loop
+
+  public:
+/*!		
+    \brief Constructor of the ForStmt class without step
+    \param id: Identifier of the loop variable
+    \param from: Expression representing the initial value
+    \param to: Expression representing the final value
+    \param stmt: List of statements inside the loop body
+    \post  A new ForStmt is created with the provided parameters
+*/
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, std::list<Statement *> *stmt, int lineNumber)
+  {
+    this->_id = id;
+    this->_from = from;
+    this->_to = to;
+    this->_stmt = stmt;
+    this->_step = NULL;
+    this->_lineNumber = lineNumber;
+  }
+
+  
+/*!		
+    \brief Constructor of the ForStmt class with step
+    \param id: Identifier of the loop variable
+    \param from: Expression representing the initial value
+    \param to: Expression representing the final value
+    \param step: Expression representing the increment step
+    \param stmt: List of statements inside the loop body
+    \post  A new ForStmt is created with the provided parameters
+*/
+  ForStmt(const std::string &id, ExpNode *from, ExpNode *to, ExpNode *step, std::list<Statement *> *stmt, int lineNumber)
+  {
+    this->_id = id;
+    this->_from = from;
+    this->_to = to;
+    this->_stmt = stmt;
+    this->_step = step;
+  }
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   CaseStmt
+  \brief   Definition of atributes and methods of CaseStmt class
+  \note    CaseStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class CaseStmt : public Statement 
+{
+ private:
+  ExpNode *_exp;
+  std::list<Statement *> *_stmt;
+
+  public:
+/*!		
+
+*/
+  CaseStmt(ExpNode * exp, std::list<lp::Statement *> *stmt, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_stmt = stmt;
+    this->_lineNumber = lineNumber;
+  }
+
+
+/*!
+	\brief   Print the AST for RepeatStmt
+	\return  void
+	\sa		   evaluate
+*/
+  void printAST();
+
+/*!	
+	\brief   Evaluate the RepeatStmt
+	\return  void
+	\sa	   	 printAST
+*/
+  void evaluate();
+
+  ExpNode* getExp() {
+    return _exp;
+  }
+
+  std::list<Statement *>* getStatements() {
+    return _stmt;
+  }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   SwitchStmt
+  \brief   Definition of atributes and methods of SwitchStmt class
+  \note    SwitchStmt Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class SwitchStmt : public Statement 
+{
+ private:
+  ExpNode *_exp;                 //!< Expression to evaluate for switching
+  std::list<lp::CaseStmt *> *_caselist; //!< List of case statements
+  std::list<lp::Statement *> *_defaultlist; //!< List of statements for the default case
+
+ public:
+  /**
+   * @brief Constructor for SwitchStmt without default case.
+   * @param exp Expression to evaluate for switching.
+   * @param caselist List of case statements.
+   * @param lineNumber Line number for error reporting.
+   */
+  SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_caselist = caselist;
+    this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Constructor for SwitchStmt with default case.
+   * @param exp Expression to evaluate for switching.
+   * @param caselist List of case statements.
+   * @param defaultlist List of statements for the default case.
+   * @param lineNumber Line number for error reporting.
+   */
+  SwitchStmt(ExpNode * exp, std::list<lp::CaseStmt *> *caselist, std::list<lp::Statement *> *defaultlist, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_caselist = caselist;
+    this->_lineNumber = lineNumber;
+    this->_defaultlist = defaultlist;
+  }
+
+  /**
+   * @brief Prints the AST for the SwitchStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the SwitchStmt, executing the matching case or default block.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*!	
+  \class   UnaryIncrementStmt
+  \brief   Definition of atributes and methods of UnaryIncrementStmt class
+  \note    UnaryIncrementStmt Class publicly inherits from Statement class 
+		   and adds its own printAST and evaluate functions
+*/
+class UnaryIncrementStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to increment
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryIncrementStmt.
+   * @param exp Expression to increment.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryIncrementStmt is created with the provided expression and line number.
+   */
+  UnaryIncrementStmt(ExpNode * exp, int lineNumber)
+  {
+	this->_exp = exp;
+	this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryIncrementStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryIncrementStmt, incrementing the value of the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class UnaryDecrementStmt
+ * @brief Represents a statement that decrements the value of an expression.
+ * @note Inherits from Statement. Adds its own printAST and evaluate methods.
+ */
+class UnaryDecrementStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to decrement
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryDecrementStmt.
+   * @param exp Expression to decrement.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryDecrementStmt is created with the provided expression and line number.
+   */
+  UnaryDecrementStmt(ExpNode * exp, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryDecrementStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryDecrementStmt, decrementing the value of the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @class UnaryFactorialStmt
+ * @brief Represents a statement that applies the factorial operation to an expression.
+ * @note Inherits from Statement. Adds its own printAST and evaluate methods.
+ */
+class UnaryFactorialStmt : public Statement 
+{
+ private:
+	  ExpNode *_exp;   //!< Expression to apply factorial
+	  int _lineNumber; //!< Line number for error reporting
+
+ public:
+  /**
+   * @brief Constructor for UnaryFactorialStmt.
+   * @param exp Expression to apply factorial.
+   * @param lineNumber Line number for error reporting.
+   * @post A new UnaryFactorialStmt is created with the provided expression and line number.
+   */
+  UnaryFactorialStmt(ExpNode * exp, int lineNumber)
+  {
+    this->_exp = exp;
+    this->_lineNumber = lineNumber;
+  }
+
+  /**
+   * @brief Prints the AST for the UnaryFactorialStmt node.
+   * @return void
+   * @sa evaluate
+   */
+  void printAST();
+
+  /**
+   * @brief Evaluates the UnaryFactorialStmt, applying the factorial operation to the expression.
+   * @return void
+   * @sa printAST
+   */
+  void evaluate();
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
+  \class   RandomNode
+  \brief   Definition of atributes and methods of RandomNode class
+  \note    RandomNode Class publicly inherits from Statement class 
+		       and adds its own printAST and evaluate functions
+*/
+class RandomNode : public ExpNode 
+{
+ private:
+  ExpNode *_min;                         
+  ExpNode *_max;                         
+
+  public:
+
+
+    RandomNode(ExpNode * min, ExpNode * max, int lineNumber)
+	{
+		this->_min = min;
+		this->_max = max;
+		this->_lineNumber = lineNumber;
+    }
+
+    int getType();
+
+    double evaluateNumber();
+
+    void printAST();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 /*!	
   \class   BlockStmt
@@ -1689,32 +2566,109 @@ class WhileStmt : public Statement
 */
 class BlockStmt : public Statement 
 {
- private:
-   std::list<Statement *> *_stmts;  //!< List of statements
+private:
+    std::list<Statement *> *_stmts;  //!< List of statements in the block
+public:
+    /**
+     * @brief Constructor for BlockStmt.
+     * @param stmtList List of statements to include in the block.
+     * @param lineNumber Line number for error reporting.
+     * @post A new BlockStmt is created with the provided statements.
+     */
+    BlockStmt(std::list<Statement *> *stmtList, int lineNumber): _stmts(stmtList)
+    {
+        // Empty
+    }
+    /**
+     * @brief Prints the AST for the BlockStmt node.
+     * @return void
+     * @sa evaluate
+     */
+    void printAST();
+    /**
+     * @brief Evaluates the BlockStmt, executing all statements in the block.
+     * @return void
+     * @sa printAST
+     */
+    void evaluate();
+};
 
-  public:
-/*!		
-	\brief Constructor of  WhileStmt
-	\param stmtList: list of Statement
-	\post  A new BlockStmt is created with the parameters
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!	
+  \class   ClearScreenStmt
+  \brief   Definition of attributes and methods of ClearScreenStmt class
+  \note    ClearScreenStmt class inherits from Statement and overrides printAST and evaluate
 */
-  BlockStmt(std::list<Statement *> *stmtList): _stmts(stmtList)
-	{
-		// Empty
-	}
+class ClearScreenStmt : public Statement
+{
+ public:
 
+/*!		
+  \brief Constructor of ClearScreenStmt
+  \post  A new ClearScreenStmt object is created
+*/
+  inline ClearScreenStmt() {}
 
-/*!
-	\brief   Print the AST for BlockStmt
-	\return  void
-	\sa		   evaluate
+  
+/*!	
+  \brief   Print the AST node for ClearScreenStmt
+  \return  void
+  \sa      evaluate
 */
   void printAST();
 
+  
 /*!	
-	\brief   Evaluate the BlockStmt
-	\return  void
-	\sa	   	 printAST
+  \brief   Evaluate the ClearScreenStmt and clears the terminal screen
+  \return  void
+  \sa      printAST
+*/
+  void evaluate();
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*!    
+  \class   PlaceStmt
+  \brief   Definition of attributes and methods of PlaceStmt class
+  \note    PlaceStmt class inherits from Statement and overrides printAST and evaluate
+*/
+class PlaceStmt : public Statement
+{
+ public:
+    ExpNode * _x;
+    ExpNode * _y;
+    int _lineNumber;
+
+/*!        
+  \brief Constructor of PlaceStmt
+  \post  A new ClearScreenStmt object is created
+*/
+inline PlaceStmt(ExpNode * x, ExpNode * y, int lineNumber)
+{
+    this->_x = x;
+    this->_y = y;
+    this->_lineNumber = lineNumber;
+}
+  
+/*!    
+  \brief   Print the AST node for PlaceStmt
+  \return  void
+  \sa      evaluate
+*/
+  void printAST();
+
+  
+/*!    
+  \brief   Evaluate the PlaceStmt and place the terminal screen
+  \return  void
+  \sa      printAST
 */
   void evaluate();
 };
@@ -1722,51 +2676,40 @@ class BlockStmt : public Statement
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
 
 /*!	
   \class   AST
   \brief   Definition of atributes and methods of AST class
 */
 class AST {
- private:
-  std::list<Statement *> *stmts;  //!< List of statements
-
- public:
-
-/*!		
-	\brief Constructor of PrintStmt 
-	\param stmtList: pointer to a list of pointers to Statement
-	\post  A new PrintStmt is created with the parameter
-*/
-  AST(std::list<Statement *> *stmtList): stmts(stmtList)
-	{
-		// Empty
-	}
-
-/*!
-	\brief   print the AST
-	\return  void
-	\sa		   evaluate
-*/
-  void printAST();
-
-/*!	
-	\brief   evaluate the AST
-	\return  double
-	\sa	   	 printAST
-*/
-  void evaluate();
+private:
+    std::list<Statement *> *stmts;  //!< List of statements in the AST
+public:
+    /**
+     * @brief Constructor for AST.
+     * @param stmtList Pointer to a list of Statement pointers.
+     * @post A new AST is created with the provided list of statements.
+     */
+    AST(std::list<Statement *> *stmtList): stmts(stmtList)
+    {
+        // Empty
+    }
+    /**
+     * @brief Prints the AST by traversing and printing all statements.
+     * @return void
+     * @sa evaluate
+     */
+    void printAST();
+    /**
+     * @brief Evaluates the AST by executing all statements in order.
+     * @return void
+     * @sa printAST
+     */
+    void evaluate();
 };
 
 // End of name space lp
 }
 
-
-
 // End of _AST_HPP_
 #endif
-
-
-
-

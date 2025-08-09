@@ -12,24 +12,16 @@
 
 #include "table.hpp"
 
-
-//  NEW in example 11 
 #include "numericConstant.hpp"
 
 #include "logicalConstant.hpp"
 
-//  NEW in example 12
 #include "keyword.hpp"
 
-//  NEW in example 13
 #include "builtinParameter1.hpp"
 
-
-// NEW  in example 14
 #include "builtinParameter0.hpp"
 #include "builtinParameter2.hpp"
-
-
 
 //  interpreter.tab.h contains the number values of the tokens produced by the parser
 #include "../parser/interpreter.tab.h"
@@ -76,7 +68,6 @@ void init(lp::Table &t)
 
   //////////////////////////////////////////////
 
- //  NEW in example 12
  lp::Keyword *k;
 
  // The predefined numeric constants are installed in the table of symbols
@@ -94,7 +85,6 @@ void init(lp::Table &t)
 
   //////////////////////////////////////////////
 
- //  NEW in example 13
  lp::BuiltinParameter1 *f;
 
  // The predefined function with 1 parameter are installed in the table of symbols
@@ -112,7 +102,6 @@ void init(lp::Table &t)
 
 
   //////////////////////////////////////////////
- //  NEW in example 14
 
  lp::BuiltinParameter0 *f0;
 
@@ -132,7 +121,6 @@ void init(lp::Table &t)
 
 
   //////////////////////////////////////////////
- //  NEW in example 14
 
  lp::BuiltinParameter2 *f2;
 

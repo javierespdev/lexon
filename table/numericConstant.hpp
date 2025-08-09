@@ -119,7 +119,7 @@ class NumericConstant:public lp::Constant
 	}
 
 
-
+	using Constant::operator=;
 		
 /*!	
 	\name I/O Functions

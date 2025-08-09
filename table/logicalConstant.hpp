@@ -142,6 +142,7 @@ class LogicalConstant:public lp::Constant
 */
 	void write() const;
 
+using Constant::operator=;
 
 /*!	
 	\name Operators

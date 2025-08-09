@@ -1,49 +1,44 @@
-# Makefile for error
+# Makefile for Lexon error module
+
 NAME=error
 
-# Compiler
+# C++ compiler
 CPP = g++
 
-# Directives for the compiler
-# -c: the output is an object file; the linking stage is not done.
-# -g: debug
-# -Wall: all warnings
-# -ansi: standard language
-# -02: optimization level
-CFLAGS = -c -g  -Wall -ansi -O2
+# Compiler flags:
+# -c: Compile only, do not link
+# -g: Debug info
+# -Wall: Enable all warnings
+# -ansi: Use ANSI standard
+# -O2: Optimization level 2
+CFLAGS = -c -g -Wall -ansi -O2
 
-# Objects
-OBJECTS= $(NAME).o
+# Object files to build
+OBJECTS = $(NAME).o
 
-# Includes
+# Project header dependencies
 INCLUDES = $(NAME).hpp ../includes/macros.hpp
 
-# Predefined macros 
-#
-# $@: name of the target
-# $^: all the dependencies
+# Predefined macros:
+# $@: target name
+# $^: all dependencies
 # $<: first dependency
-#
+
 #######################################################
-
-# Main rule
-
+# Main build rule: build all object files
 all: $(OBJECTS)
 
-
-# Error recovery functions 
+#######################################################
+# Build the error recovery object file
 $(NAME).o: $(NAME).cpp $(INCLUDES)
-	@echo "Compiling " $<
+	@echo "Compiling $<"
 	@$(CPP) $(CFLAGS) $<
 	@echo
 
-
-
 #######################################################
-# Auxiliary files are deleted
-clean: 
+# Clean up all generated files in the error directory
+clean:
 	@echo
 	@echo "Deleting in subdirectory error"
-	@rm -f $(OBJECTS) *~ 
+	@rm -f $(OBJECTS) *~
 	@echo
-
